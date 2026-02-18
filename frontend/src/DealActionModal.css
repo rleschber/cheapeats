@@ -52,6 +52,7 @@
 }
 
 .deal-modal__btn {
+  display: block;
   padding: 14px 18px;
   font-size: 1rem;
   font-weight: 600;
@@ -59,6 +60,9 @@
   border-radius: var(--radius-sm);
   cursor: pointer;
   text-align: center;
+  text-decoration: none;
+  color: inherit;
+  box-sizing: border-box;
 }
 
 .deal-modal__btn--website {

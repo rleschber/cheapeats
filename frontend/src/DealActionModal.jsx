@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { RESTAURANT_LINKS } from "./restaurantLinks";
+import { getRestaurantLinks } from "./restaurantLinks";
 import "./DealActionModal.css";
 
 function buildDirectionsUrl(userLocation, deal) {
@@ -13,7 +13,7 @@ function buildDirectionsUrl(userLocation, deal) {
 }
 
 export default function DealActionModal({ deal, userLocation, onClose }) {
-  const links = deal?.restaurant ? RESTAURANT_LINKS[deal.restaurant] : null;
+  const links = deal?.restaurant ? getRestaurantLinks(deal.restaurant) : null;
   const websiteUrl = deal?.website || links?.website;
   const directionsUrl = buildDirectionsUrl(userLocation, deal);
 
@@ -27,12 +27,13 @@ export default function DealActionModal({ deal, userLocation, onClose }) {
     };
   }, [onClose]);
 
-  const open = (url) => {
-    if (url) window.open(url, "_blank", "noopener,noreferrer");
-  };
-
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   const appUrl = isIOS ? links?.appStore : links?.playStore;
+
+  const isAbsoluteUrl = (u) => typeof u === "string" && (u.startsWith("http://") || u.startsWith("https://"));
+  const safeWebsiteUrl = isAbsoluteUrl(websiteUrl) ? websiteUrl : null;
+  const safeAppUrl = isAbsoluteUrl(appUrl) ? appUrl : null;
+  const safeDirectionsUrl = isAbsoluteUrl(directionsUrl) ? directionsUrl : null;
 
   return (
     <div
@@ -48,34 +49,37 @@ export default function DealActionModal({ deal, userLocation, onClose }) {
         </h2>
         <p className="deal-modal__deal">{deal?.title}</p>
         <div className="deal-modal__actions">
-          {websiteUrl && (
-            <button
-              type="button"
+          {safeWebsiteUrl && (
+            <a
+              href={safeWebsiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="deal-modal__btn deal-modal__btn--website"
-              onClick={() => open(websiteUrl)}
             >
               Website
-            </button>
+            </a>
           )}
-          {appUrl && (
-            <button
-              type="button"
+          {safeAppUrl && (
+            <a
+              href={safeAppUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="deal-modal__btn deal-modal__btn--app"
-              onClick={() => open(appUrl)}
             >
               {isIOS ? "App Store" : "Get app / Open"}
-            </button>
+            </a>
           )}
-          {directionsUrl && (
-            <button
-              type="button"
+          {safeDirectionsUrl && (
+            <a
+              href={safeDirectionsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="deal-modal__btn deal-modal__btn--directions"
-              onClick={() => open(directionsUrl)}
             >
               Directions
-            </button>
+            </a>
           )}
-          {!websiteUrl && !appUrl && !directionsUrl && (
+          {!safeWebsiteUrl && !safeAppUrl && !safeDirectionsUrl && (
             <p className="deal-modal__empty">No links available for this deal.</p>
           )}
         </div>

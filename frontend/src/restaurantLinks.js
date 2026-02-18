@@ -10,7 +10,7 @@ export const RESTAURANT_LINKS = {
   },
   "Taco Bell": {
     website: "https://www.tacobell.com",
-    appStore: "https://apps.apple.com/app/taco-bell/id427824434",
+    appStore: "https://apps.apple.com/app/taco-bell-fast-food-delivery/id497387361",
     playStore: "https://play.google.com/store/apps/details?id=com.tacobell.ordering",
   },
   "Chipotle": {
@@ -20,18 +20,18 @@ export const RESTAURANT_LINKS = {
   },
   "Wendy's": {
     website: "https://www.wendys.com",
-    appStore: "https://apps.apple.com/app/wendys/id443860084",
+    appStore: "https://apps.apple.com/app/wendys/id540518599",
     playStore: "https://play.google.com/store/apps/details?id=com.wendys",
   },
   "Burger King": {
     website: "https://www.bk.com",
-    appStore: "https://apps.apple.com/app/burger-king/id428834295",
+    appStore: "https://apps.apple.com/app/burger-king-app/id638323895",
     playStore: "https://play.google.com/store/apps/details?id=com.bk.mobile",
   },
   "Chick-fil-A": {
     website: "https://www.chick-fil-a.com",
-    appStore: "https://apps.apple.com/app/chick-fil-a/id593063532",
-    playStore: "https://play.google.com/store/apps/details?id=com.chickfila.mobile",
+    appStore: "https://apps.apple.com/app/chick-fil-a/id488818252",
+    playStore: "https://play.google.com/store/apps/details?id=com.chickfila.cfaflagship",
   },
   "Panda Express": {
     website: "https://www.pandaexpress.com",
@@ -50,8 +50,6 @@ export const RESTAURANT_LINKS = {
   },
   "Papa John's": {
     website: "https://www.papajohns.com",
-    appStore: "https://apps.apple.com/app/papa-johns-pizza/id428827202",
-    playStore: "https://play.google.com/store/apps/details?id=com.papajohns.android",
   },
   "Little Caesars": {
     website: "https://www.littlecaesars.com",
@@ -60,22 +58,22 @@ export const RESTAURANT_LINKS = {
   },
   "Pizza Hut": {
     website: "https://www.pizzahut.com",
-    appStore: "https://apps.apple.com/app/pizza-hut/id428827202",
+    appStore: "https://apps.apple.com/app/pizza-hut-delivery-takeout/id321560858",
     playStore: "https://play.google.com/store/apps/details?id=com.yum.pizzahut",
   },
   "Olive Garden": {
     website: "https://www.olivegarden.com",
-    appStore: "https://apps.apple.com/app/olive-garden/id428827202",
-    playStore: "https://play.google.com/store/apps/details?id=com.darden.olivegarden",
+    appStore: "https://apps.apple.com/app/olive-garden-italian-kitchen/id1067313166",
+    playStore: "https://play.google.com/store/apps/details?id=com.darden.mobile.olivegarden",
   },
   "Buffalo Wild Wings": {
     website: "https://www.buffalowildwings.com",
-    appStore: "https://apps.apple.com/app/buffalo-wild-wings/id428827202",
+    appStore: "https://apps.apple.com/app/buffalo-wild-wings/id1031364004",
     playStore: "https://play.google.com/store/apps/details?id=com.buffalowildwings.consumer",
   },
   "Dunkin'": {
     website: "https://www.dunkindonuts.com",
-    appStore: "https://apps.apple.com/app/dunkin/id317428673",
+    appStore: "https://apps.apple.com/app/dunkin/id1056813463",
     playStore: "https://play.google.com/store/apps/details?id=com.dunkin.android",
   },
   "Starbucks": {
@@ -90,112 +88,120 @@ export const RESTAURANT_LINKS = {
   },
   "Arby's": {
     website: "https://www.arbys.com",
-    appStore: "https://apps.apple.com/app/arbys/id428827202",
+    appStore: "https://apps.apple.com/app/arbys-fast-food-sandwiches/id1348507359",
     playStore: "https://play.google.com/store/apps/details?id=com.arbys.arbys",
   },
   "Jack in the Box": {
     website: "https://www.jackinthebox.com",
-    appStore: "https://apps.apple.com/app/jack-in-the-box/id428827202",
+    appStore: "https://apps.apple.com/app/jack-in-the-box-order-app/id1283768751",
     playStore: "https://play.google.com/store/apps/details?id=com.jackinthebox.android",
   },
   "Whataburger": {
     website: "https://www.whataburger.com",
-    appStore: "https://apps.apple.com/app/whataburger/id428827202",
+    appStore: "https://apps.apple.com/app/whataburger/id1141643627",
     playStore: "https://play.google.com/store/apps/details?id=com.whataburger.android",
   },
   "Wingstop": {
     website: "https://www.wingstop.com",
-    appStore: "https://apps.apple.com/app/wingstop/id428827202",
+    appStore: "https://apps.apple.com/app/wingstop/id454719277",
     playStore: "https://play.google.com/store/apps/details?id=com.wingstop.android",
   },
   "Raising Cane's": {
     website: "https://www.raisingcanes.com",
-    appStore: "https://apps.apple.com/app/raising-canes/id428827202",
+    appStore: "https://apps.apple.com/app/raising-canes-chicken-fingers/id1530642656",
     playStore: "https://play.google.com/store/apps/details?id=com.raisingcanes.android",
   },
   "Zaxby's": {
     website: "https://www.zaxbys.com",
-    appStore: "https://apps.apple.com/app/zaxbys/id428827202",
+    appStore: "https://apps.apple.com/app/zaxbys/id480603264",
     playStore: "https://play.google.com/store/apps/details?id=com.zaxbys.android",
   },
   "Popeyes": {
     website: "https://www.popeyes.com",
-    appStore: "https://apps.apple.com/app/popeyes/id428827202",
-    playStore: "https://play.google.com/store/apps/details?id=com.popeyes.android",
   },
   "KFC": {
     website: "https://www.kfc.com",
-    appStore: "https://apps.apple.com/app/kfc/id428827202",
+    appStore: "https://apps.apple.com/app/kfc-order-delivery/id328506972",
     playStore: "https://play.google.com/store/apps/details?id=com.yum.kfc",
   },
   "Panera Bread": {
     website: "https://www.panerabread.com",
-    appStore: "https://apps.apple.com/app/panera-bread/id428827202",
+    appStore: "https://apps.apple.com/app/panera-bread/id692365393",
     playStore: "https://play.google.com/store/apps/details?id=com.panera.bread",
   },
   "Jimmy John's": {
     website: "https://www.jimmyjohns.com",
-    appStore: "https://apps.apple.com/app/jimmy-johns/id428827202",
-    playStore: "https://play.google.com/store/apps/details?id=com.jimmyjohns.android",
   },
   "Qdoba": {
     website: "https://www.qdoba.com",
-    appStore: "https://apps.apple.com/app/qdoba/id428827202",
-    playStore: "https://play.google.com/store/apps/details?id=com.qdoba.android",
   },
   "IHOP": {
     website: "https://www.ihop.com",
-    appStore: "https://apps.apple.com/app/ihop/id428827202",
+    appStore: "https://apps.apple.com/app/ihop/id572284095",
     playStore: "https://play.google.com/store/apps/details?id=com.ihop.android",
   },
   "Denny's": {
     website: "https://www.dennys.com",
-    appStore: "https://apps.apple.com/app/dennys/id428827202",
+    appStore: "https://apps.apple.com/app/dennys/id527548554",
     playStore: "https://play.google.com/store/apps/details?id=com.dennys.android",
   },
   "Applebee's": {
     website: "https://www.applebees.com",
-    appStore: "https://apps.apple.com/app/applebees/id428827202",
-    playStore: "https://play.google.com/store/apps/details?id=com.applebees.android",
   },
   "Chili's": {
     website: "https://www.chilis.com",
-    appStore: "https://apps.apple.com/app/chilis/id428827202",
-    playStore: "https://play.google.com/store/apps/details?id=com.chilis.android",
   },
   "Texas Roadhouse": {
     website: "https://www.texasroadhouse.com",
-    appStore: "https://apps.apple.com/app/texas-roadhouse/id428827202",
-    playStore: "https://play.google.com/store/apps/details?id=com.texasroadhouse.android",
   },
   "Dairy Queen": {
     website: "https://www.dairyqueen.com",
-    appStore: "https://apps.apple.com/app/dairy-queen/id428827202",
+    appStore: "https://apps.apple.com/app/dairy-queen-food-treats/id1359480496",
     playStore: "https://play.google.com/store/apps/details?id=com.dairyqueen.android",
   },
   "Krispy Kreme": {
     website: "https://www.krispykreme.com",
-    appStore: "https://apps.apple.com/app/krispy-kreme/id428827202",
-    playStore: "https://play.google.com/store/apps/details?id=com.krispykreme.android",
   },
   "Red Lobster": {
     website: "https://www.redlobster.com",
-    appStore: "https://apps.apple.com/app/red-lobster/id428827202",
-    playStore: "https://play.google.com/store/apps/details?id=com.redlobster.android",
   },
   "P.F. Chang's": {
     website: "https://www.pfchangs.com",
-    appStore: "https://apps.apple.com/app/p-f-changs/id428827202",
-    playStore: "https://play.google.com/store/apps/details?id=com.pfchangs.android",
   },
 };
+
+/**
+ * Normalize restaurant name for lookup (handles apostrophe variants, trim).
+ */
+function normalizeName(name) {
+  if (!name || typeof name !== "string") return "";
+  return name
+    .trim()
+    .replace(/\u2019/g, "'")
+    .replace(/\u2018/g, "'");
+}
+
+/**
+ * Get links for a restaurant by exact or normalized name match.
+ */
+export function getRestaurantLinks(restaurantName) {
+  if (!restaurantName) return null;
+  const exact = RESTAURANT_LINKS[restaurantName];
+  if (exact) return exact;
+  const normalized = normalizeName(restaurantName);
+  if (!normalized) return null;
+  const key = Object.keys(RESTAURANT_LINKS).find(
+    (k) => normalizeName(k) === normalized
+  );
+  return key ? RESTAURANT_LINKS[key] : null;
+}
 
 /**
  * Resolve brand domain from restaurant name (for logo URLs).
  */
 function getBrandDomain(restaurantName) {
   if (!restaurantName) return "restaurant.com";
-  const links = RESTAURANT_LINKS[restaurantName];
+  const links = getRestaurantLinks(restaurantName);
   let domain = null;
   if (links?.website) {
     try {
