@@ -1,0 +1,113 @@
+.deal-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(28, 25, 23, 0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+
+@media (min-width: 480px) {
+  .deal-modal-backdrop {
+    align-items: center;
+    padding: 20px;
+  }
+}
+
+.deal-modal {
+  background: var(--surface);
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 24px 20px 32px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 -4px 24px rgba(120, 53, 15, 0.12);
+  border-top: 3px solid var(--accent-soft);
+}
+
+@media (min-width: 480px) {
+  .deal-modal {
+    border-radius: var(--radius);
+  }
+}
+
+.deal-modal__title {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.deal-modal__deal {
+  margin: 0 0 20px;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.deal-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.deal-modal__btn {
+  padding: 14px 18px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: center;
+}
+
+.deal-modal__btn--website {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.35);
+}
+
+.deal-modal__btn--website:hover {
+  filter: brightness(1.08);
+}
+
+.deal-modal__btn--app {
+  background: var(--surface-hover);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.deal-modal__btn--app:hover {
+  background: var(--border);
+}
+
+.deal-modal__btn--directions {
+  background: var(--savings);
+  color: white;
+  box-shadow: 0 2px 8px rgba(21, 128, 61, 0.3);
+}
+
+.deal-modal__btn--directions:hover {
+  filter: brightness(1.08);
+}
+
+.deal-modal__empty {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.deal-modal__close {
+  margin-top: 16px;
+  padding: 10px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.deal-modal__close:hover {
+  color: var(--text);
+}

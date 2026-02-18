@@ -1,0 +1,12 @@
+{
+  "name": "polaris-app",
+  "private": true,
+  "description": "Run backend or frontend from project root",
+  "scripts": {
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm run dev",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "build": "cd frontend && npm ci && npm run build && cd ../backend && npm ci",
+    "start": "node backend/server.js"
+  }
+}

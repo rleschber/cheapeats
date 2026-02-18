@@ -1,0 +1,51 @@
+:root {
+  --bg: #fffbf7;
+  --surface: #ffffff;
+  --surface-hover: #fff5eb;
+  --text: #1c1917;
+  --text-muted: #78716c;
+  --accent: #ea580c;
+  --accent-dim: #c2410c;
+  --accent-soft: #ffedd5;
+  --green: #166534;
+  --green-bright: #16a34a;
+  --savings: #15803d;
+  --savings-soft: #dcfce7;
+  --warm: #d97706;
+  --border: #f5e6d3;
+  --shadow: rgba(120, 53, 15, 0.08);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --safe-top: env(safe-area-inset-top, 0);
+  --safe-bottom: env(safe-area-inset-bottom, 0);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  font-family: "Outfit", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+button,
+select {
+  font-family: inherit;
+}
