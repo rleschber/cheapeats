@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useLayoutEffect, useCallback } from "react";
 import { getBrandfetchLogo } from "./api";
 import { getStockImageForFoodType } from "./foodImageMap";
 
@@ -6,10 +6,25 @@ const CLEARBIT_BASE = "https://logo.clearbit.com/";
 const APISTEMIC_BASE = "https://logos-api.apistemic.com/domain:";
 const CLEARBIT_MIN_WIDTH = 150;
 
+/** Fallback when API doesn't send websiteDomain — same mapping as backend. */
+const RESTAURANT_DOMAINS = {
+  "McDonald's": "mcdonalds.com", "Taco Bell": "tacobell.com", "Chipotle": "chipotle.com",
+  "Wendy's": "wendys.com", "Burger King": "bk.com", "Chick-fil-A": "chick-fil-a.com",
+  "Panda Express": "pandaexpress.com", "Subway": "subway.com", "Domino's": "dominos.com",
+  "Little Caesars": "littlecaesars.com", "Pizza Hut": "pizzahut.com", "Olive Garden": "olivegarden.com",
+  "Buffalo Wild Wings": "buffalowildwings.com", "Dunkin'": "dunkindonuts.com", "Starbucks": "starbucks.com",
+  "Sonic": "sonicdrivein.com", "Arby's": "arbys.com", "Jack in the Box": "jackinthebox.com",
+  "Whataburger": "whataburger.com", "Wingstop": "wingstop.com", "Raising Cane's": "raisingcanes.com",
+  "Zaxby's": "zaxbys.com", "KFC": "kfc.com", "Panera Bread": "panerabread.com", "IHOP": "ihop.com",
+  "Denny's": "dennys.com", "Dairy Queen": "dairyqueen.com", "Popeyes": "popeyes.com",
+  "Five Guys": "fiveguys.com", "In-N-Out": "in-n-out.com", "Papa John's": "papajohns.com",
+  "Moe's Southwest Grill": "moes.com", "Firehouse Subs": "firehousesubs.com",
+};
+
 /**
  * Deterministic hybrid logo strategy:
- * 1) Brandfetch SVG/PNG
- * 2) Apistemic (works in img, no API key)
+ * 1) Brandfetch SVG/PNG (if available from API)
+ * 2) Apistemic (works in img, no API key) — used immediately so no white box
  * 3) Clearbit (reject if naturalWidth < 150px)
  * 4) Controlled stock food image
  *
@@ -17,9 +32,9 @@ const CLEARBIT_MIN_WIDTH = 150;
  */
 export function useDealImage(deal) {
   const websiteDomain =
-    deal && typeof deal.websiteDomain === "string"
+    (deal && typeof deal.websiteDomain === "string" && deal.websiteDomain.trim())
       ? deal.websiteDomain.trim().toLowerCase()
-      : null;
+      : (deal && deal.restaurant && RESTAURANT_DOMAINS[deal.restaurant]) || null;
   const foodType =
     deal && deal.foodType && typeof deal.foodType === "string"
       ? deal.foodType.trim()
@@ -32,34 +47,36 @@ export function useDealImage(deal) {
   const apistemicUrl = cleanDomain ? APISTEMIC_BASE + cleanDomain : null;
 
   const [brandfetchUrl, setBrandfetchUrl] = useState(null);
-  const [brandfetchDone, setBrandfetchDone] = useState(false);
-  const [source, setSource] = useState(null); // 'brandfetch' | 'apistemic' | 'clearbit' | 'food' | null
+  const [source, setSource] = useState(
+    () => apistemicUrl ? "apistemic" : clearbitUrl ? "clearbit" : stockSrc ? "food" : null
+  );
 
-  useEffect(() => {
-    if (!websiteDomain) {
-      setBrandfetchDone(true);
-      return;
+  // Keep source in sync when Brandfetch returns or when fallbacks change.
+  useLayoutEffect(() => {
+    if (brandfetchUrl) {
+      setSource("brandfetch");
+    } else if (apistemicUrl) {
+      setSource("apistemic");
+    } else if (clearbitUrl) {
+      setSource("clearbit");
+    } else if (stockSrc) {
+      setSource("food");
+    } else {
+      setSource(null);
     }
+  }, [brandfetchUrl, apistemicUrl, clearbitUrl, stockSrc]);
+
+  // Optional: try Brandfetch in background; if it returns a URL we'll prefer it.
+  useEffect(() => {
+    if (!websiteDomain) return;
     let cancelled = false;
     getBrandfetchLogo(websiteDomain)
       .then(({ logoUrl }) => {
         if (!cancelled && logoUrl) setBrandfetchUrl(logoUrl);
       })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setBrandfetchDone(true);
-      });
+      .catch(() => {});
     return () => { cancelled = true; };
   }, [websiteDomain]);
-
-  useEffect(() => {
-    if (!brandfetchDone) return;
-    if (brandfetchUrl) setSource("brandfetch");
-    else if (apistemicUrl) setSource("apistemic");
-    else if (clearbitUrl) setSource("clearbit");
-    else if (stockSrc) setSource("food");
-    else setSource(null);
-  }, [brandfetchDone, brandfetchUrl, apistemicUrl, clearbitUrl, stockSrc]);
 
   const onLoad = useCallback(
     (e) => {
@@ -101,7 +118,7 @@ export function useDealImage(deal) {
     type: source,
     onLoad,
     onError,
-    isLoading: !brandfetchDone && !!websiteDomain,
+    isLoading: false,
     isLogo: source === "brandfetch" || source === "apistemic" || source === "clearbit",
     isFood: source === "food",
   };
