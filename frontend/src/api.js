@@ -28,3 +28,15 @@ export async function getDealTypes() {
   const res = await fetch(`${API_BASE}/deals/deal-types`);
   return handleRes(res);
 }
+
+/**
+ * Fetches logo from Brandfetch (via backend). Returns { logoUrl, format }.
+ * Prefer SVG; format is 'svg' | 'png' | null.
+ */
+export async function getBrandfetchLogo(websiteDomain) {
+  if (!websiteDomain || typeof websiteDomain !== "string") return { logoUrl: null, format: null };
+  const domain = websiteDomain.trim().toLowerCase();
+  if (!domain) return { logoUrl: null, format: null };
+  const res = await fetch(`${API_BASE}/deals/logo/${encodeURIComponent(domain)}`);
+  return handleRes(res);
+}

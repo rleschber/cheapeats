@@ -88,13 +88,67 @@ const LOGO_DOMAINS = {
   "Firehouse Subs": "firehousesubs.com",
 };
 
-const LOGO_API_BASE = "https://logos-api.apistemic.com/domain:";
-
-function getLogoUrl(restaurantName) {
-  const domain = LOGO_DOMAINS[restaurantName];
-  if (!domain) return null;
-  return LOGO_API_BASE + domain;
+/** Get website domain for a restaurant (required for logo fetch). */
+function getWebsiteDomain(restaurantName) {
+  return LOGO_DOMAINS[restaurantName] || null;
 }
+
+/** In-memory cache for Brandfetch logo URLs (domain -> { logoUrl, format }). */
+const brandfetchCache = new Map();
+const CLEARBIT_MIN_WIDTH = 150;
+
+/**
+ * GET /api/deals/logo/:domain
+ * Fetches logo from Brandfetch (SVG preferred, then PNG). API key in BRANDFETCH_API_KEY env.
+ */
+router.get("/logo/:domain", async (req, res) => {
+  const domain = (req.params.domain || "").trim().toLowerCase();
+  if (!domain) {
+    res.status(400).json({ error: "Missing domain" });
+    return;
+  }
+  const cached = brandfetchCache.get(domain);
+  if (cached) {
+    return res.json(cached);
+  }
+  const apiKey = process.env.BRANDFETCH_API_KEY;
+  if (!apiKey) {
+    res.json({ logoUrl: null, format: null });
+    return;
+  }
+  try {
+    const url = `https://api.brandfetch.io/v2/brands/${encodeURIComponent(domain)}`;
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (!response.ok) {
+      res.json({ logoUrl: null, format: null });
+      return;
+    }
+    const data = await response.json();
+    const logos = data.logos || [];
+    let best = { url: null, format: null };
+    for (const logo of logos) {
+      const formats = logo.formats || [];
+      for (const f of formats) {
+        const src = f.src || f.url;
+        const fmt = (f.format || "").toLowerCase();
+        if (!src) continue;
+        if (fmt === "svg") {
+          best = { url: src, format: "svg" };
+          break;
+        }
+        if (fmt === "png" && !best.url) best = { url: src, format: "png" };
+      }
+      if (best.format === "svg") break;
+    }
+    const result = { logoUrl: best.url, format: best.format };
+    brandfetchCache.set(domain, result);
+    res.json(result);
+  } catch (err) {
+    res.json({ logoUrl: null, format: null });
+  }
+});
 
 function isVerifiedProductUrl(url) {
   if (!url || typeof url !== "string") return false;
@@ -104,8 +158,7 @@ function isVerifiedProductUrl(url) {
 
 /** Keys allowed in frontend foodImageMap. Only set foodType when deal explicitly matches. */
 const ALLOWED_FOOD_TYPES = new Set([
-  "burger", "pizza", "sub", "pancakes", "steak", "fries", "chicken", "wings",
-  "taco", "bowl", "drink", "coffee", "icecream", "pasta",
+  "burger", "sub", "pancakes", "steak", "chicken_sandwich",
 ]);
 
 /**
@@ -120,7 +173,7 @@ function getFoodType(d) {
   if (/\bpancake|waffle\s*fry/.test(text)) return "pancakes";
   if (/\bsteak\b|wing\b|wings\b|boneless/.test(text)) return text.includes("wing") ? "wings" : "steak";
   if (/\bfries?\b|fry\b|waffle\s*fries/.test(text)) return "fries";
-  if (/\bchicken\s*sandwich|tender|nugget/.test(text)) return "chicken";
+  if (/\bchicken\s*sandwich|tender|nugget/.test(text)) return "chicken_sandwich";
   if (/\btaco\b|burrito|nachos?|queso/.test(text)) return "taco";
   if (/\bbowl\b(?!\s*of)/.test(text)) return "bowl";
   if (/\bdrink\b|soda|cold\s*brew|slush|frosty/.test(text)) return "drink";
@@ -189,7 +242,7 @@ router.get("/", (req, res) => {
       distanceMiles(userLat, userLng, latitude, longitude) * 10
     ) / 10;
     const type = getDealType(d);
-    const logoUrl = getLogoUrl(d.restaurant);
+    const websiteDomain = getWebsiteDomain(d.restaurant);
     const productImageUrl =
       d.image && isVerifiedProductUrl(d.image) ? d.image : null;
     const foodType = getFoodType(d);
@@ -199,7 +252,7 @@ router.get("/", (req, res) => {
       longitude,
       distanceMiles: distMi,
       dealType: type,
-      logoUrl,
+      websiteDomain,
       productImageUrl,
       foodType: foodType && ALLOWED_FOOD_TYPES.has(foodType) ? foodType : null,
     };
