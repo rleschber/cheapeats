@@ -94,6 +94,34 @@ function isVerifiedProductUrl(url) {
   return !u.includes("unsplash") && !u.includes("placeholder");
 }
 
+/** Keys allowed in frontend foodImageMap. Only set foodType when deal explicitly matches. */
+const ALLOWED_FOOD_TYPES = new Set([
+  "burger", "pizza", "sub", "pancakes", "steak", "fries", "chicken", "wings",
+  "taco", "bowl", "drink", "coffee", "icecream", "pasta",
+]);
+
+/**
+ * Derive foodType only from deal title/description when the deal is specifically for that item.
+ * No cuisine-based guessing; no default burger.
+ */
+function getFoodType(d) {
+  const text = `${d.title || ""} ${d.description || ""}`.toLowerCase();
+  if (/\bburger\b|whopper|mcdouble|mcchicken|single\b|cheeseburger\b/.test(text)) return "burger";
+  if (/\bpizza\b|pepperoni|topping|large.*pizza/.test(text)) return "pizza";
+  if (/\bsub\b|footlong|sandwich\b(?!\s*sauce)/.test(text)) return "sub";
+  if (/\bpancake|waffle\s*fry/.test(text)) return "pancakes";
+  if (/\bsteak\b|wing\b|wings\b|boneless/.test(text)) return text.includes("wing") ? "wings" : "steak";
+  if (/\bfries?\b|fry\b|waffle\s*fries/.test(text)) return "fries";
+  if (/\bchicken\s*sandwich|tender|nugget/.test(text)) return "chicken";
+  if (/\btaco\b|burrito|nachos?|queso/.test(text)) return "taco";
+  if (/\bbowl\b(?!\s*of)/.test(text)) return "bowl";
+  if (/\bdrink\b|soda|cold\s*brew|slush|frosty/.test(text)) return "drink";
+  if (/\bcoffee\b|latte|espresso|donut/.test(text)) return "coffee";
+  if (/\bice\s*cream|blizzard|frosty|smoothie/.test(text)) return "icecream";
+  if (/\bpasta\b|entrée|entree\b/.test(text)) return "pasta";
+  return null;
+}
+
 function getDealType(d) {
   const t = (d.title || "").toLowerCase();
   const desc = (d.description || "").toLowerCase();
@@ -156,6 +184,7 @@ router.get("/", (req, res) => {
     const logoUrl = OFFICIAL_LOGO_URLS[d.restaurant] || null;
     const productImageUrl =
       d.image && isVerifiedProductUrl(d.image) ? d.image : null;
+    const foodType = getFoodType(d);
     return {
       ...d,
       latitude,
@@ -164,6 +193,7 @@ router.get("/", (req, res) => {
       dealType: type,
       logoUrl,
       productImageUrl,
+      foodType: foodType && ALLOWED_FOOD_TYPES.has(foodType) ? foodType : null,
     };
   });
 
