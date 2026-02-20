@@ -51,42 +51,50 @@ const DEAL_TYPES = [
   "Discount",
 ];
 
-/** Official logo URLs only. No stock or auto-fetched images. */
-const OFFICIAL_LOGO_URLS = {
-  "McDonald's": "https://logo.clearbit.com/mcdonalds.com",
-  "Taco Bell": "https://logo.clearbit.com/tacobell.com",
-  "Chipotle": "https://logo.clearbit.com/chipotle.com",
-  "Wendy's": "https://logo.clearbit.com/wendys.com",
-  "Burger King": "https://logo.clearbit.com/bk.com",
-  "Chick-fil-A": "https://logo.clearbit.com/chick-fil-a.com",
-  "Panda Express": "https://logo.clearbit.com/pandaexpress.com",
-  "Subway": "https://logo.clearbit.com/subway.com",
-  "Domino's": "https://logo.clearbit.com/dominos.com",
-  "Little Caesars": "https://logo.clearbit.com/littlecaesars.com",
-  "Pizza Hut": "https://logo.clearbit.com/pizzahut.com",
-  "Olive Garden": "https://logo.clearbit.com/olivegarden.com",
-  "Buffalo Wild Wings": "https://logo.clearbit.com/buffalowildwings.com",
-  "Dunkin'": "https://logo.clearbit.com/dunkindonuts.com",
-  "Starbucks": "https://logo.clearbit.com/starbucks.com",
-  "Sonic": "https://logo.clearbit.com/sonicdrivein.com",
-  "Arby's": "https://logo.clearbit.com/arbys.com",
-  "Jack in the Box": "https://logo.clearbit.com/jackinthebox.com",
-  "Whataburger": "https://logo.clearbit.com/whataburger.com",
-  "Wingstop": "https://logo.clearbit.com/wingstop.com",
-  "Raising Cane's": "https://logo.clearbit.com/raisingcanes.com",
-  "Zaxby's": "https://logo.clearbit.com/zaxbys.com",
-  "KFC": "https://logo.clearbit.com/kfc.com",
-  "Panera Bread": "https://logo.clearbit.com/panerabread.com",
-  "IHOP": "https://logo.clearbit.com/ihop.com",
-  "Denny's": "https://logo.clearbit.com/dennys.com",
-  "Dairy Queen": "https://logo.clearbit.com/dairyqueen.com",
-  "Popeyes": "https://logo.clearbit.com/popeyes.com",
-  "Five Guys": "https://logo.clearbit.com/fiveguys.com",
-  "In-N-Out": "https://logo.clearbit.com/in-n-out.com",
-  "Papa John's": "https://logo.clearbit.com/papajohns.com",
-  "Moe's Southwest Grill": "https://logo.clearbit.com/moes.com",
-  "Firehouse Subs": "https://logo.clearbit.com/firehousesubs.com",
+/** Official logo URLs — Apistemic (works in img tags, no CORS). Format: domain for lookup. */
+const LOGO_DOMAINS = {
+  "McDonald's": "mcdonalds.com",
+  "Taco Bell": "tacobell.com",
+  "Chipotle": "chipotle.com",
+  "Wendy's": "wendys.com",
+  "Burger King": "bk.com",
+  "Chick-fil-A": "chick-fil-a.com",
+  "Panda Express": "pandaexpress.com",
+  "Subway": "subway.com",
+  "Domino's": "dominos.com",
+  "Little Caesars": "littlecaesars.com",
+  "Pizza Hut": "pizzahut.com",
+  "Olive Garden": "olivegarden.com",
+  "Buffalo Wild Wings": "buffalowildwings.com",
+  "Dunkin'": "dunkindonuts.com",
+  "Starbucks": "starbucks.com",
+  "Sonic": "sonicdrivein.com",
+  "Arby's": "arbys.com",
+  "Jack in the Box": "jackinthebox.com",
+  "Whataburger": "whataburger.com",
+  "Wingstop": "wingstop.com",
+  "Raising Cane's": "raisingcanes.com",
+  "Zaxby's": "zaxbys.com",
+  "KFC": "kfc.com",
+  "Panera Bread": "panerabread.com",
+  "IHOP": "ihop.com",
+  "Denny's": "dennys.com",
+  "Dairy Queen": "dairyqueen.com",
+  "Popeyes": "popeyes.com",
+  "Five Guys": "fiveguys.com",
+  "In-N-Out": "in-n-out.com",
+  "Papa John's": "papajohns.com",
+  "Moe's Southwest Grill": "moes.com",
+  "Firehouse Subs": "firehousesubs.com",
 };
+
+const LOGO_API_BASE = "https://logos-api.apistemic.com/domain:";
+
+function getLogoUrl(restaurantName) {
+  const domain = LOGO_DOMAINS[restaurantName];
+  if (!domain) return null;
+  return LOGO_API_BASE + domain;
+}
 
 function isVerifiedProductUrl(url) {
   if (!url || typeof url !== "string") return false;
@@ -181,7 +189,7 @@ router.get("/", (req, res) => {
       distanceMiles(userLat, userLng, latitude, longitude) * 10
     ) / 10;
     const type = getDealType(d);
-    const logoUrl = OFFICIAL_LOGO_URLS[d.restaurant] || null;
+    const logoUrl = getLogoUrl(d.restaurant);
     const productImageUrl =
       d.image && isVerifiedProductUrl(d.image) ? d.image : null;
     const foodType = getFoodType(d);
