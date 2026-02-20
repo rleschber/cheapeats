@@ -38,7 +38,8 @@ function parseSavingsPercent(str) {
   return isNaN(n) ? 0 : n;
 }
 
-const RADII = [1, 5, 10, 25];
+const MIN_RADIUS = 0.1;
+const MAX_RADIUS = 25;
 
 const DEAL_TYPES = [
   "Kids Eat Free",
@@ -76,8 +77,11 @@ router.get("/", (req, res) => {
 
   const userLat = lat != null && lat !== "" ? Number(lat) : null;
   const userLng = lng != null && lng !== "" ? Number(lng) : null;
-  const radiusMiles =
-    radius != null && RADII.includes(Number(radius)) ? Number(radius) : 25;
+  let radiusMiles = 25;
+  if (radius != null && radius !== "") {
+    const n = Number(radius);
+    if (!isNaN(n)) radiusMiles = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, n));
+  }
 
   const hasUserLocation =
     userLat != null && userLng != null &&

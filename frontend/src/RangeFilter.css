@@ -1,11 +1,19 @@
 .range-filter {
-  padding: 12px 20px 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  padding: 14px 20px 18px;
   background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
   border-bottom: 1px solid var(--border);
+}
+
+.range-filter__slider-wrap {
+  width: 50%;
+}
+
+.range-filter__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .range-filter__label {
@@ -14,37 +22,53 @@
   color: var(--text-muted);
 }
 
-.range-filter__options {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+.range-filter__value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--green);
 }
 
-.range-filter__btn {
-  padding: 8px 14px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, color 0.2s;
+.range-filter__slider {
+  width: 100%;
+  height: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--border);
+  border-radius: 4px;
+  outline: none;
 }
 
-.range-filter__btn:hover:not(:disabled) {
-  background: var(--surface-hover);
-  color: var(--text);
-}
-
-.range-filter__btn--active {
+.range-filter__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
   background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.3);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.4);
+  border: none;
 }
 
-.range-filter__btn:disabled {
+.range-filter__slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.4);
+  border: none;
+}
+
+.range-filter__slider:disabled {
   opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.range-filter__slider:disabled::-webkit-slider-thumb {
+  cursor: not-allowed;
+}
+
+.range-filter__slider:disabled::-moz-range-thumb {
   cursor: not-allowed;
 }
