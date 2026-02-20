@@ -51,6 +51,49 @@ const DEAL_TYPES = [
   "Discount",
 ];
 
+/** Official logo URLs only. No stock or auto-fetched images. */
+const OFFICIAL_LOGO_URLS = {
+  "McDonald's": "https://logo.clearbit.com/mcdonalds.com",
+  "Taco Bell": "https://logo.clearbit.com/tacobell.com",
+  "Chipotle": "https://logo.clearbit.com/chipotle.com",
+  "Wendy's": "https://logo.clearbit.com/wendys.com",
+  "Burger King": "https://logo.clearbit.com/bk.com",
+  "Chick-fil-A": "https://logo.clearbit.com/chick-fil-a.com",
+  "Panda Express": "https://logo.clearbit.com/pandaexpress.com",
+  "Subway": "https://logo.clearbit.com/subway.com",
+  "Domino's": "https://logo.clearbit.com/dominos.com",
+  "Little Caesars": "https://logo.clearbit.com/littlecaesars.com",
+  "Pizza Hut": "https://logo.clearbit.com/pizzahut.com",
+  "Olive Garden": "https://logo.clearbit.com/olivegarden.com",
+  "Buffalo Wild Wings": "https://logo.clearbit.com/buffalowildwings.com",
+  "Dunkin'": "https://logo.clearbit.com/dunkindonuts.com",
+  "Starbucks": "https://logo.clearbit.com/starbucks.com",
+  "Sonic": "https://logo.clearbit.com/sonicdrivein.com",
+  "Arby's": "https://logo.clearbit.com/arbys.com",
+  "Jack in the Box": "https://logo.clearbit.com/jackinthebox.com",
+  "Whataburger": "https://logo.clearbit.com/whataburger.com",
+  "Wingstop": "https://logo.clearbit.com/wingstop.com",
+  "Raising Cane's": "https://logo.clearbit.com/raisingcanes.com",
+  "Zaxby's": "https://logo.clearbit.com/zaxbys.com",
+  "KFC": "https://logo.clearbit.com/kfc.com",
+  "Panera Bread": "https://logo.clearbit.com/panerabread.com",
+  "IHOP": "https://logo.clearbit.com/ihop.com",
+  "Denny's": "https://logo.clearbit.com/dennys.com",
+  "Dairy Queen": "https://logo.clearbit.com/dairyqueen.com",
+  "Popeyes": "https://logo.clearbit.com/popeyes.com",
+  "Five Guys": "https://logo.clearbit.com/fiveguys.com",
+  "In-N-Out": "https://logo.clearbit.com/in-n-out.com",
+  "Papa John's": "https://logo.clearbit.com/papajohns.com",
+  "Moe's Southwest Grill": "https://logo.clearbit.com/moes.com",
+  "Firehouse Subs": "https://logo.clearbit.com/firehousesubs.com",
+};
+
+function isVerifiedProductUrl(url) {
+  if (!url || typeof url !== "string") return false;
+  const u = url.toLowerCase();
+  return !u.includes("unsplash") && !u.includes("placeholder");
+}
+
 function getDealType(d) {
   const t = (d.title || "").toLowerCase();
   const desc = (d.description || "").toLowerCase();
@@ -110,13 +153,17 @@ router.get("/", (req, res) => {
       distanceMiles(userLat, userLng, latitude, longitude) * 10
     ) / 10;
     const type = getDealType(d);
+    const logoUrl = OFFICIAL_LOGO_URLS[d.restaurant] || null;
+    const productImageUrl =
+      d.image && isVerifiedProductUrl(d.image) ? d.image : null;
     return {
       ...d,
       latitude,
       longitude,
       distanceMiles: distMi,
-      image: d.image || null,
       dealType: type,
+      logoUrl,
+      productImageUrl,
     };
   });
 

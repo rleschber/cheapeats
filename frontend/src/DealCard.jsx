@@ -1,38 +1,43 @@
 import { useState } from "react";
 import DealActionModal from "./DealActionModal";
-import { getCuratedLogoUrl } from "./curatedLogos";
-import { getFallbackFoodImage } from "./cuisineFoodImages";
 import "./DealCard.css";
 
+/**
+ * Valid non-empty URL from deal data only. No guessing or stock URLs.
+ */
+function isValidImageUrl(url) {
+  if (!url || typeof url !== "string") return false;
+  const t = url.trim();
+  return t.startsWith("http://") || t.startsWith("https://");
+}
+
+/**
+ * Image priority: 1) logoUrl (official), 2) productImageUrl (verified, matches deal), 3) text-only fallback.
+ * No stock images, Unsplash, or cuisine-based guessing.
+ */
 export default function DealCard({ deal, userLocation }) {
-  const brand = deal.restaurant || "Deal";
+  const restaurantName = deal.restaurant || "Deal";
   const [modalOpen, setModalOpen] = useState(false);
-  const [dealImageFailed, setDealImageFailed] = useState(false);
   const [logoFailed, setLogoFailed] = useState(false);
-  const [foodFallbackFailed, setFoodFallbackFailed] = useState(false);
+  const [productImageFailed, setProductImageFailed] = useState(false);
 
-  const dealImageUrl = deal.image || null;
-  const curatedLogoUrl = getCuratedLogoUrl(deal.restaurant);
-  const fallbackFoodUrl = getFallbackFoodImage(deal);
+  const logoUrl = deal.logoUrl && isValidImageUrl(deal.logoUrl) ? deal.logoUrl : null;
+  const productImageUrl =
+    deal.productImageUrl && isValidImageUrl(deal.productImageUrl) ? deal.productImageUrl : null;
 
-  const showDealImage = dealImageUrl && !dealImageFailed;
-  const showLogo = !showDealImage && curatedLogoUrl && !logoFailed;
-  const showFood = !showDealImage && (!curatedLogoUrl || logoFailed) && !foodFallbackFailed;
-  const showLetter = !showDealImage && (!curatedLogoUrl || logoFailed) && foodFallbackFailed;
+  const tryLogo = logoUrl && !logoFailed;
+  const tryProduct = productImageUrl && !productImageFailed && (!tryLogo || logoFailed);
 
-  const displaySrc = showDealImage
-    ? dealImageUrl
-    : showLogo
-      ? curatedLogoUrl
-      : showFood
-        ? fallbackFoodUrl
-        : null;
-  const initial = brand.charAt(0).toUpperCase();
+  const showLogo = tryLogo;
+  const showProduct = !showLogo && tryProduct;
+  const showTextFallback = !showLogo && (!tryProduct || productImageFailed);
+
+  const displaySrc = showLogo ? logoUrl : showProduct ? productImageUrl : null;
+  const initial = restaurantName.charAt(0).toUpperCase();
 
   const handleImageError = () => {
-    if (showDealImage) setDealImageFailed(true);
-    else if (showLogo) setLogoFailed(true);
-    else if (showFood) setFoodFallbackFailed(true);
+    if (showLogo) setLogoFailed(true);
+    else if (showProduct) setProductImageFailed(true);
   };
 
   const handleClick = () => setModalOpen(true);
@@ -50,19 +55,19 @@ export default function DealCard({ deal, userLocation }) {
             handleClick();
           }
         }}
-        aria-label={`${brand}: ${deal.title}. Tap for options.`}
+        aria-label={`${restaurantName}: ${deal.title}. Tap for options.`}
       >
         <div className="deal-card__image-wrap">
-          {showLetter ? (
-            <span className="deal-card__logo-fallback" aria-hidden="true">
-              {initial}
+          {showTextFallback ? (
+            <span className="deal-card__text-fallback" aria-hidden="true">
+              {restaurantName}
             </span>
           ) : (
             <img
               key={displaySrc}
               src={displaySrc}
               alt=""
-              className={`deal-card__image ${showLogo ? "deal-card__image--logo" : ""} ${showFood ? "deal-card__image--cuisine-food" : ""}`}
+              className={`deal-card__image ${showLogo ? "deal-card__image--logo" : ""} ${showProduct ? "deal-card__image--product" : ""}`}
               onError={handleImageError}
             />
           )}
@@ -73,7 +78,7 @@ export default function DealCard({ deal, userLocation }) {
             <span className="deal-card__savings">{deal.savings}</span>
           </div>
           <h3 className="deal-card__title">{deal.title}</h3>
-          <p className="deal-card__restaurant">{deal.restaurant}</p>
+          <p className="deal-card__restaurant">{restaurantName}</p>
           <p className="deal-card__description">{deal.description}</p>
           <div className="deal-card__meta">
             {deal.distanceMiles != null && (
