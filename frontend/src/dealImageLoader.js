@@ -3,14 +3,15 @@ import { getBrandfetchLogo } from "./api";
 import { getStockImageForFoodType } from "./foodImageMap";
 
 const CLEARBIT_BASE = "https://logo.clearbit.com/";
+const APISTEMIC_BASE = "https://logos-api.apistemic.com/domain:";
 const CLEARBIT_MIN_WIDTH = 150;
 
 /**
  * Deterministic hybrid logo strategy:
  * 1) Brandfetch SVG/PNG
- * 2) Clearbit (reject if naturalWidth < 150px)
- * 3) Controlled stock food image
- * No letter tiles, no random placeholders.
+ * 2) Apistemic (works in img, no API key)
+ * 3) Clearbit (reject if naturalWidth < 150px)
+ * 4) Controlled stock food image
  *
  * @param {Object} deal - { websiteDomain, foodType, restaurant?, title?, dealTitle? }
  */
@@ -24,13 +25,15 @@ export function useDealImage(deal) {
       ? deal.foodType.trim()
       : null;
   const stockSrc = getStockImageForFoodType(foodType);
-  const clearbitUrl = websiteDomain
-    ? CLEARBIT_BASE + websiteDomain.replace(/^https?:\/\//, "").split("/")[0]
+  const cleanDomain = websiteDomain
+    ? websiteDomain.replace(/^https?:\/\//, "").split("/")[0]
     : null;
+  const clearbitUrl = cleanDomain ? CLEARBIT_BASE + cleanDomain : null;
+  const apistemicUrl = cleanDomain ? APISTEMIC_BASE + cleanDomain : null;
 
   const [brandfetchUrl, setBrandfetchUrl] = useState(null);
   const [brandfetchDone, setBrandfetchDone] = useState(false);
-  const [source, setSource] = useState(null); // 'brandfetch' | 'clearbit' | 'food' | null
+  const [source, setSource] = useState(null); // 'brandfetch' | 'apistemic' | 'clearbit' | 'food' | null
 
   useEffect(() => {
     if (!websiteDomain) {
@@ -52,10 +55,11 @@ export function useDealImage(deal) {
   useEffect(() => {
     if (!brandfetchDone) return;
     if (brandfetchUrl) setSource("brandfetch");
+    else if (apistemicUrl) setSource("apistemic");
     else if (clearbitUrl) setSource("clearbit");
     else if (stockSrc) setSource("food");
     else setSource(null);
-  }, [brandfetchDone, brandfetchUrl, clearbitUrl, stockSrc]);
+  }, [brandfetchDone, brandfetchUrl, apistemicUrl, clearbitUrl, stockSrc]);
 
   const onLoad = useCallback(
     (e) => {
@@ -71,22 +75,26 @@ export function useDealImage(deal) {
 
   const onError = useCallback(() => {
     if (source === "brandfetch") {
+      setSource(apistemicUrl ? "apistemic" : clearbitUrl ? "clearbit" : stockSrc ? "food" : null);
+    } else if (source === "apistemic") {
       setSource(clearbitUrl ? "clearbit" : stockSrc ? "food" : null);
     } else if (source === "clearbit") {
       setSource(stockSrc ? "food" : null);
     } else if (source === "food") {
       setSource(null);
     }
-  }, [source, clearbitUrl, stockSrc]);
+  }, [source, apistemicUrl, clearbitUrl, stockSrc]);
 
   const src =
     source === "brandfetch"
       ? brandfetchUrl
-      : source === "clearbit"
-        ? clearbitUrl
-        : source === "food"
-          ? stockSrc
-          : null;
+      : source === "apistemic"
+        ? apistemicUrl
+        : source === "clearbit"
+          ? clearbitUrl
+          : source === "food"
+            ? stockSrc
+            : null;
 
   return {
     src,
@@ -94,7 +102,7 @@ export function useDealImage(deal) {
     onLoad,
     onError,
     isLoading: !brandfetchDone && !!websiteDomain,
-    isLogo: source === "brandfetch" || source === "clearbit",
+    isLogo: source === "brandfetch" || source === "apistemic" || source === "clearbit",
     isFood: source === "food",
   };
 }
