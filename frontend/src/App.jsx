@@ -11,8 +11,8 @@ export default function App() {
   const [cuisines, setCuisines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [cuisine, setCuisine] = useState("");
-  const [dealType, setDealType] = useState("");
+  const [selectedCuisines, setSelectedCuisines] = useState([]);
+  const [selectedDealTypes, setSelectedDealTypes] = useState([]);
   const [radius, setRadius] = useState(1);
   const [userLocation, setUserLocation] = useState(null);
   const [locationStatus, setLocationStatus] = useState("prompt");
@@ -44,8 +44,8 @@ export default function App() {
     setDealsMessage(null);
     try {
       const data = await getDeals({
-        cuisine: cuisine || undefined,
-        dealType: dealType || undefined,
+        cuisines: selectedCuisines,
+        dealTypes: selectedDealTypes,
         radius,
         lat: userLocation?.lat,
         lng: userLocation?.lng,
@@ -58,7 +58,7 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [cuisine, dealType, radius, userLocation]);
+  }, [selectedCuisines, selectedDealTypes, radius, userLocation]);
 
   useEffect(() => {
     loadCuisines();
@@ -128,15 +128,23 @@ export default function App() {
 
       <CuisineFilter
         cuisines={cuisines}
-        value={cuisine}
-        onChange={setCuisine}
+        selected={selectedCuisines}
+        onToggle={(c) =>
+          setSelectedCuisines((prev) =>
+            prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
+          )
+        }
         disabled={loading}
       />
 
       <DealTypeFilter
         dealTypes={dealTypes}
-        value={dealType}
-        onChange={setDealType}
+        selected={selectedDealTypes}
+        onToggle={(t) =>
+          setSelectedDealTypes((prev) =>
+            prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
+          )
+        }
         disabled={loading}
       />
 
@@ -155,7 +163,14 @@ export default function App() {
         {!loading && !error && deals.length > 0 && (
           <section className="deals-section">
             <h2 className="section-title">
-              {cuisine ? `${cuisine} deals` : dealType ? `${dealType} deals` : "Best savings"}
+              {selectedCuisines.length || selectedDealTypes.length
+                ? [
+                    selectedCuisines.length ? selectedCuisines.join(", ") : null,
+                    selectedDealTypes.length ? selectedDealTypes.join(", ") : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ") + " deals"
+                : "Best savings"}
             </h2>
             <ul className="deals-list">
               {deals.map((deal) => (

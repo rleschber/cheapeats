@@ -70,7 +70,11 @@ function getDealType(d) {
  */
 router.get("/", (req, res) => {
   let list = [...dealsData];
-  const { cuisine, sort, radius, lat, lng, dealType } = req.query;
+  const { sort, radius, lat, lng } = req.query;
+  const cuisineParam = req.query.cuisine;
+  const dealTypeParam = req.query.dealType;
+  const cuisines = [].concat(cuisineParam || []).filter(Boolean).map((c) => String(c).trim().toLowerCase());
+  const dealTypes = [].concat(dealTypeParam || []).filter(Boolean).map((t) => String(t).trim());
 
   const today = new Date().toISOString().slice(0, 10);
   list = list.filter((d) => !d.validUntil || d.validUntil >= today);
@@ -118,16 +122,14 @@ router.get("/", (req, res) => {
 
   list = list.filter((d) => d.distanceMiles <= radiusMiles);
 
-  if (dealType && dealType.trim() && DEAL_TYPES.includes(dealType.trim())) {
-    const want = dealType.trim();
-    list = list.filter((d) => d.dealType === want);
+  if (dealTypes.length > 0) {
+    const set = new Set(dealTypes.filter((t) => DEAL_TYPES.includes(t)));
+    if (set.size) list = list.filter((d) => set.has(d.dealType));
   }
 
-  if (cuisine && cuisine.trim()) {
-    const c = cuisine.trim().toLowerCase();
-    list = list.filter(
-      (d) => d.cuisine && d.cuisine.toLowerCase().includes(c)
-    );
+  if (cuisines.length > 0) {
+    const set = new Set(cuisines);
+    list = list.filter((d) => d.cuisine && set.has(d.cuisine.toLowerCase()));
   }
 
   if (sort === "newest") {

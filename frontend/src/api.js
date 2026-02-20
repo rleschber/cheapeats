@@ -5,14 +5,14 @@ async function handleRes(res) {
   return res.json();
 }
 
-export async function getDeals({ cuisine, sort = "savings", radius, lat, lng, dealType } = {}) {
+export async function getDeals({ cuisines = [], dealTypes = [], sort = "savings", radius, lat, lng } = {}) {
   const params = new URLSearchParams();
-  if (cuisine) params.set("cuisine", cuisine);
+  if (Array.isArray(cuisines) && cuisines.length) cuisines.forEach((c) => params.append("cuisine", c));
+  if (Array.isArray(dealTypes) && dealTypes.length) dealTypes.forEach((t) => params.append("dealType", t));
   if (sort) params.set("sort", sort);
   if (radius != null && radius !== "") params.set("radius", String(radius));
   if (lat != null && lat !== "") params.set("lat", String(lat));
   if (lng != null && lng !== "") params.set("lng", String(lng));
-  if (dealType) params.set("dealType", dealType);
   const qs = params.toString();
   const url = `${API_BASE}/deals${qs ? `?${qs}` : ""}`;
   const res = await fetch(url);
