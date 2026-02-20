@@ -13,7 +13,7 @@ export default function App() {
   const [error, setError] = useState(null);
   const [cuisine, setCuisine] = useState("");
   const [dealType, setDealType] = useState("");
-  const [radius, setRadius] = useState(10);
+  const [radius, setRadius] = useState(1);
   const [userLocation, setUserLocation] = useState(null);
   const [locationStatus, setLocationStatus] = useState("prompt");
   const [dealTypes, setDealTypes] = useState([]);

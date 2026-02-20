@@ -219,7 +219,7 @@ function getBrandDomain(restaurantName) {
 const CLEARBIT_LOGO_BASE = "https://logo.clearbit.com/";
 
 /** Google favicon – reliable fallback when Clearbit has no logo. */
-const FAVICON_BASE = "https://www.google.com/s2/favicons?sz=128&domain=";
+const FAVICON_BASE = "https://www.google.com/s2/favicons?sz=256&domain=";
 
 /**
  * Returns [primaryUrl, fallbackUrl] for brand logo. Try primary (Clearbit) first;

@@ -1,26 +1,38 @@
 import { useState } from "react";
 import DealActionModal from "./DealActionModal";
-import { getBrandLogoUrls } from "./restaurantLinks";
+import { getCuratedLogoUrl } from "./curatedLogos";
+import { getFallbackFoodImage } from "./cuisineFoodImages";
 import "./DealCard.css";
 
 export default function DealCard({ deal, userLocation }) {
   const brand = deal.restaurant || "Deal";
   const [modalOpen, setModalOpen] = useState(false);
-  const [foodImageFailed, setFoodImageFailed] = useState(false);
+  const [dealImageFailed, setDealImageFailed] = useState(false);
+  const [logoFailed, setLogoFailed] = useState(false);
+  const [foodFallbackFailed, setFoodFallbackFailed] = useState(false);
 
-  const foodUrl = deal.image || null;
-  const logoUrls = getBrandLogoUrls(deal.restaurant);
-  const [logoUrlIndex, setLogoUrlIndex] = useState(0);
-  const logoFailed = logoUrlIndex >= logoUrls.length;
-  const showFoodFirst = foodUrl && !foodImageFailed;
-  const displaySrc = showFoodFirst ? foodUrl : logoUrls[logoUrlIndex];
-  const showLetterFallback = !showFoodFirst && logoFailed;
+  const dealImageUrl = deal.image || null;
+  const curatedLogoUrl = getCuratedLogoUrl(deal.restaurant);
+  const fallbackFoodUrl = getFallbackFoodImage(deal);
+
+  const showDealImage = dealImageUrl && !dealImageFailed;
+  const showLogo = !showDealImage && curatedLogoUrl && !logoFailed;
+  const showFood = !showDealImage && (!curatedLogoUrl || logoFailed) && !foodFallbackFailed;
+  const showLetter = !showDealImage && (!curatedLogoUrl || logoFailed) && foodFallbackFailed;
+
+  const displaySrc = showDealImage
+    ? dealImageUrl
+    : showLogo
+      ? curatedLogoUrl
+      : showFood
+        ? fallbackFoodUrl
+        : null;
   const initial = brand.charAt(0).toUpperCase();
 
   const handleImageError = () => {
-    if (showFoodFirst) setFoodImageFailed(true);
-    else if (logoUrlIndex + 1 < logoUrls.length) setLogoUrlIndex((i) => i + 1);
-    else setLogoUrlIndex(logoUrls.length);
+    if (showDealImage) setDealImageFailed(true);
+    else if (showLogo) setLogoFailed(true);
+    else if (showFood) setFoodFallbackFailed(true);
   };
 
   const handleClick = () => setModalOpen(true);
@@ -41,7 +53,7 @@ export default function DealCard({ deal, userLocation }) {
         aria-label={`${brand}: ${deal.title}. Tap for options.`}
       >
         <div className="deal-card__image-wrap">
-          {showLetterFallback ? (
+          {showLetter ? (
             <span className="deal-card__logo-fallback" aria-hidden="true">
               {initial}
             </span>
@@ -50,13 +62,10 @@ export default function DealCard({ deal, userLocation }) {
               key={displaySrc}
               src={displaySrc}
               alt=""
-              className={`deal-card__image ${!showFoodFirst ? "deal-card__image--logo" : ""}`}
+              className={`deal-card__image ${showLogo ? "deal-card__image--logo" : ""} ${showFood ? "deal-card__image--cuisine-food" : ""}`}
               onError={handleImageError}
             />
           )}
-          <span className="deal-card__brand" aria-hidden="true">
-            {brand}
-          </span>
         </div>
         <div className="deal-card__body">
           <div className="deal-card__header">

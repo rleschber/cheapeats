@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { deals as dealsData, DEAL_OFFSETS } from "../data/deals.js";
-import { RESTAURANT_FOOD_IMAGES } from "../data/restaurantFoodImages.js";
 
 const router = Router();
 
@@ -108,7 +107,7 @@ router.get("/", (req, res) => {
       latitude,
       longitude,
       distanceMiles: distMi,
-      image: d.image || RESTAURANT_FOOD_IMAGES[d.restaurant] || null,
+      image: d.image || null,
       dealType: type,
     };
   });
