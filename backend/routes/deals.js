@@ -88,99 +88,76 @@ const LOGO_DOMAINS = {
   "Firehouse Subs": "firehousesubs.com",
 };
 
-/** Get website domain for a restaurant (required for logo fetch). */
-function getWebsiteDomain(restaurantName) {
-  return LOGO_DOMAINS[restaurantName] || null;
-}
+const FOOD_IMAGES = {
+  taco: "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=400&q=80",
+  burrito: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400&q=80",
+  nachos: "https://images.unsplash.com/photo-1618040996337-56904b7850b9?w=400&q=80",
+  wings: "https://images.unsplash.com/photo-1567620832903-7fcb3dc8ab95?w=400&q=80",
+  burger: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80",
+  fries: "https://images.unsplash.com/photo-1573089895944-1a81d62a2f5a?w=400&q=80",
+  pizza: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80",
+  sub: "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=400&q=80",
+  chicken: "https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=400&q=80",
+  nuggets: "https://images.unsplash.com/photo-1562967916-eb82221dfb92?w=400&q=80",
+  icecream: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=400&q=80",
+  coffee: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&q=80",
+  donut: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&q=80",
+  drinks: "https://images.unsplash.com/photo-1544148103-0773bf10d330?w=400&q=80",
+  pasta: "https://images.unsplash.com/photo-1551183053-bf91a1f81141?w=400&q=80",
+  bowl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80",
+  chinese: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&q=80",
+  gyro: "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400&q=80",
+  corndog: "https://images.unsplash.com/photo-1626200419199-391ae4be7a41?w=400&q=80",
+  breakfast: "https://images.unsplash.com/photo-1561860949-5b0fd7c2d2b3?w=400&q=80",
+  apps: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80",
+  soup: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&q=80",
+};
 
-/** In-memory cache for Brandfetch logo URLs (domain -> { logoUrl, format }). */
-const brandfetchCache = new Map();
-const CLEARBIT_MIN_WIDTH = 150;
+const RESTAURANT_FOOD = {
+  "IHOP": "breakfast", "Denny's": "breakfast",
+  "Buffalo Wild Wings": "wings", "Wingstop": "wings",
+  "Dunkin'": "donut", "Starbucks": "coffee",
+  "Raising Cane's": "chicken", "Zaxby's": "chicken",
+  "KFC": "chicken", "Popeyes": "chicken", "Chick-fil-A": "chicken",
+  "Panda Express": "chinese",
+  "Olive Garden": "pasta",
+  "Dairy Queen": "icecream",
+};
 
-/**
- * GET /api/deals/logo/:domain
- * Fetches logo from Brandfetch (SVG preferred, then PNG). API key in BRANDFETCH_API_KEY env.
- */
-router.get("/logo/:domain", async (req, res) => {
-  const domain = (req.params.domain || "").trim().toLowerCase();
-  if (!domain) {
-    res.status(400).json({ error: "Missing domain" });
-    return;
-  }
-  const cached = brandfetchCache.get(domain);
-  if (cached) {
-    return res.json(cached);
-  }
-  const apiKey = process.env.BRANDFETCH_API_KEY;
-  if (!apiKey) {
-    res.json({ logoUrl: null, format: null });
-    return;
-  }
-  try {
-    const url = `https://api.brandfetch.io/v2/brands/${encodeURIComponent(domain)}`;
-    const response = await fetch(url, {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    });
-    if (!response.ok) {
-      res.json({ logoUrl: null, format: null });
-      return;
-    }
-    const data = await response.json();
-    const logos = data.logos || [];
-    let best = { url: null, format: null };
-    for (const logo of logos) {
-      const formats = logo.formats || [];
-      for (const f of formats) {
-        const src = f.src || f.url;
-        const fmt = (f.format || "").toLowerCase();
-        if (!src) continue;
-        if (fmt === "svg") {
-          best = { url: src, format: "svg" };
-          break;
-        }
-        if (fmt === "png" && !best.url) best = { url: src, format: "png" };
-      }
-      if (best.format === "svg") break;
-    }
-    const result = { logoUrl: best.url, format: best.format };
-    brandfetchCache.set(domain, result);
-    res.json(result);
-  } catch (err) {
-    res.json({ logoUrl: null, format: null });
-  }
-});
+const CUISINE_FOOD = {
+  "Fast Food": "burger", "Mexican": "taco", "American": "wings",
+  "Pizza": "pizza", "Sandwiches": "sub", "Italian": "pasta", "Chinese": "chinese",
+};
 
-function isVerifiedProductUrl(url) {
-  if (!url || typeof url !== "string") return false;
-  const u = url.toLowerCase();
-  return !u.includes("unsplash") && !u.includes("placeholder");
-}
-
-/** Keys allowed in frontend foodImageMap. Only set foodType when deal explicitly matches. */
-const ALLOWED_FOOD_TYPES = new Set([
-  "burger", "sub", "pancakes", "steak", "chicken_sandwich",
-]);
-
-/**
- * Derive foodType only from deal title/description when the deal is specifically for that item.
- * No cuisine-based guessing; no default burger.
- */
-function getFoodType(d) {
+function pickFoodImage(d) {
   const text = `${d.title || ""} ${d.description || ""}`.toLowerCase();
-  if (/\bburger\b|whopper|mcdouble|mcchicken|single\b|cheeseburger\b/.test(text)) return "burger";
-  if (/\bpizza\b|pepperoni|topping|large.*pizza/.test(text)) return "pizza";
-  if (/\bsub\b|footlong|sandwich\b(?!\s*sauce)/.test(text)) return "sub";
-  if (/\bpancake|waffle\s*fry/.test(text)) return "pancakes";
-  if (/\bsteak\b|wing\b|wings\b|boneless/.test(text)) return text.includes("wing") ? "wings" : "steak";
-  if (/\bfries?\b|fry\b|waffle\s*fries/.test(text)) return "fries";
-  if (/\bchicken\s*sandwich|tender|nugget/.test(text)) return "chicken_sandwich";
-  if (/\btaco\b|burrito|nachos?|queso/.test(text)) return "taco";
-  if (/\bbowl\b(?!\s*of)/.test(text)) return "bowl";
-  if (/\bdrink\b|soda|cold\s*brew|slush|frosty/.test(text)) return "drink";
-  if (/\bcoffee\b|latte|espresso|donut/.test(text)) return "coffee";
-  if (/\bice\s*cream|blizzard|frosty|smoothie/.test(text)) return "icecream";
-  if (/\bpasta\b|entrée|entree\b/.test(text)) return "pasta";
-  return null;
+  if (/taco|tacos/.test(text)) return FOOD_IMAGES.taco;
+  if (/burrito/.test(text)) return FOOD_IMAGES.burrito;
+  if (/nachos|queso/.test(text)) return FOOD_IMAGES.nachos;
+  if (/\bwing|wings|boneless/.test(text)) return FOOD_IMAGES.wings;
+  if (/burger|whopper|mcdouble|cheeseburger/.test(text)) return FOOD_IMAGES.burger;
+  if (/fries|fry|waffle fries|curly fries/.test(text)) return FOOD_IMAGES.fries;
+  if (/pizza|pepperoni|topping/.test(text)) return FOOD_IMAGES.pizza;
+  if (/chicken sandwich/.test(text)) return FOOD_IMAGES.chicken;
+  if (/\bsub\b|footlong|sandwich/.test(text)) return FOOD_IMAGES.sub;
+  if (/tender|nugget/.test(text)) return FOOD_IMAGES.nuggets;
+  if (/frosty|milkshake|ice cream|blizzard/.test(text)) return FOOD_IMAGES.icecream;
+  if (/cold brew|coffee|latte|espresso/.test(text)) return FOOD_IMAGES.coffee;
+  if (/donut|doughnut/.test(text)) return FOOD_IMAGES.donut;
+  if (/pancake|waffle|breakfast/.test(text)) return FOOD_IMAGES.breakfast;
+  if (/corn dog/.test(text)) return FOOD_IMAGES.corndog;
+  if (/gyro/.test(text)) return FOOD_IMAGES.gyro;
+  if (/pasta|entrée|entree/.test(text)) return FOOD_IMAGES.pasta;
+  if (/bowl|guac/.test(text)) return FOOD_IMAGES.bowl;
+  if (/soup|salad/.test(text)) return FOOD_IMAGES.soup;
+  if (/drink|soda|slush/.test(text)) return FOOD_IMAGES.drinks;
+  if (/happy hour|apps/.test(text)) return FOOD_IMAGES.apps;
+  if (/mcchicken|mcmuffin/.test(text)) return FOOD_IMAGES.burger;
+  const rKey = RESTAURANT_FOOD[d.restaurant];
+  if (rKey) return FOOD_IMAGES[rKey];
+  const cKey = CUISINE_FOOD[d.cuisine];
+  if (cKey) return FOOD_IMAGES[cKey];
+  return FOOD_IMAGES.burger;
 }
 
 function getDealType(d) {
@@ -242,19 +219,13 @@ router.get("/", (req, res) => {
       distanceMiles(userLat, userLng, latitude, longitude) * 10
     ) / 10;
     const type = getDealType(d);
-    const websiteDomain = getWebsiteDomain(d.restaurant);
-    const productImageUrl =
-      d.image && isVerifiedProductUrl(d.image) ? d.image : null;
-    const foodType = getFoodType(d);
     return {
       ...d,
       latitude,
       longitude,
       distanceMiles: distMi,
       dealType: type,
-      websiteDomain,
-      productImageUrl,
-      foodType: foodType && ALLOWED_FOOD_TYPES.has(foodType) ? foodType : null,
+      foodImage: pickFoodImage(d),
     };
   });
 

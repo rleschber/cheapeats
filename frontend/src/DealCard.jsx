@@ -1,64 +1,33 @@
 import { useState } from "react";
 import DealActionModal from "./DealActionModal";
-import { useDealImage } from "./dealImageLoader";
 import "./DealCard.css";
 
-/**
- * DealCard with deterministic hybrid logo strategy:
- * 1) Brandfetch SVG/PNG, 2) Clearbit (reject if < 150px), 3) Controlled stock food image.
- * No letter tiles or random placeholders.
- */
 export default function DealCard({ deal, userLocation }) {
-  const restaurantName = deal.restaurantName || deal.restaurant || "Deal";
-  const dealTitle = deal.dealTitle || deal.title || "";
+  const restaurantName = deal.restaurant || "Deal";
+  const dealTitle = deal.title || "";
   const [modalOpen, setModalOpen] = useState(false);
-
-  const {
-    src,
-    type,
-    onLoad,
-    onError,
-    isLoading,
-    isLogo,
-    isFood,
-  } = useDealImage(deal);
-
-  const handleClick = () => setModalOpen(true);
 
   return (
     <>
       <article
         className="deal-card"
-        onClick={handleClick}
+        onClick={() => setModalOpen(true)}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            handleClick();
+            setModalOpen(true);
           }
         }}
         aria-label={`${restaurantName}: ${dealTitle}. Tap for options.`}
       >
         <div className="deal-card__image-wrap">
-          {!src ? (
-            <div
-              className="deal-card__image-placeholder"
-              aria-hidden="true"
-            />
-          ) : (
-            <img
-              key={src}
-              src={src}
-              alt=""
-              className={`deal-card__image ${isLogo ? "deal-card__image--logo" : ""} ${isFood ? "deal-card__image--food" : ""}`}
-              onLoad={onLoad}
-              onError={onError}
-            />
-          )}
-          {isLoading && (
-            <div className="deal-card__image-loading" aria-hidden="true" />
-          )}
+          <img
+            src={deal.foodImage}
+            alt=""
+            className="deal-card__image"
+          />
         </div>
         <div className="deal-card__body">
           <div className="deal-card__header">

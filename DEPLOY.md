@@ -1,26 +1,34 @@
 # How to push CheapEats to production (step-by-step)
 
-You’ll use **Render** (a free, easy host for Node.js apps). You don’t need to connect your GoDaddy domain yet; you can do that later.
+**You asked:** What stack is this? What’s the easiest way to push to production? Is there a standard, easy host? I have a domain from GoDaddy; for now I only want to push to production and will connect the domain later. I want frontend and backend on one platform, and my school is paying (no free tier).
+
+**Short answers:**
+
+- **Stack:** Backend = **Node.js + Express** (API). Frontend = **React + Vite**. In production, the backend serves the built frontend too, so it’s **one app on one server**.
+- **Easiest way to production:** Put the code on GitHub, then deploy that repo on **Railway**. One platform, one deploy — no separate frontend or backend hosting.
+- **Standard, easy host for this stack:** **Railway** is a common choice for Node/React apps: simple setup, one place for frontend + backend, pay-as-you-go (your school can pay). No free-tier needed.
+
+You’ll connect your GoDaddy domain later; these steps only get the app live on a Railway URL.
 
 ---
 
 ## What you need first
 
-1. Your code in **GitHub** (create a repo and push this folder).
-2. A free account at **Render**: [https://render.com](https://render.com) → Sign up (e.g. with GitHub).
+1. Your code in a **GitHub** repository (create one and push this folder).
+2. A **Railway** account: [https://railway.app](https://railway.app) — sign in with **GitHub**.
 
 ---
 
 ## Step 1: Put your project on GitHub
 
-1. Go to [https://github.com/new](https://github.com/new).
-2. Create a new repository (e.g. name: `cheapeats` or `polaris-app`). Don’t add a README (you already have one).
-3. Open **PowerShell** (or Terminal) on your computer.
-4. Go to your project folder:
+1. In your browser, go to [https://github.com/new](https://github.com/new).
+2. Create a **new repository** (e.g. name: `cheapeats` or `polaris-app`). Leave “Add a README” **unchecked** (you already have one in the project).
+3. On your computer, open **PowerShell** (search “PowerShell” in the Start menu).
+4. Go to your project folder by typing (then press Enter):
    ```powershell
    cd "C:\Users\raymo\OneDrive\Desktop\polaris_app"
    ```
-5. Turn the folder into a git repo and push (replace `YOUR_USERNAME` and `YOUR_REPO` with your GitHub username and repo name):
+5. Run these commands **one at a time** (replace `YOUR_USERNAME` with your GitHub username and `YOUR_REPO` with the repo name you chose in step 2):
    ```powershell
    git init
    git add .
@@ -29,56 +37,44 @@ You’ll use **Render** (a free, easy host for Node.js apps). You don’t need t
    git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
    git push -u origin main
    ```
-   If GitHub asks you to log in, use the browser or a personal access token.
+   If GitHub asks you to sign in, do it in the browser or use a personal access token when prompted.
+
+When this is done, your full project (frontend + backend) is on GitHub.
 
 ---
 
-## Step 2: Create the app on Render
+## Step 2: Deploy on Railway (one platform for frontend + backend)
 
-1. Log in at [https://dashboard.render.com](https://dashboard.render.com).
-2. Click **“New +”** → **“Web Service”**.
-3. Connect GitHub if asked, then choose the repository you just pushed (e.g. `cheapeats` or `polaris_app`).
-4. Use these settings exactly:
+1. In your browser, go to [https://railway.app](https://railway.app) and sign in with **GitHub**.
+2. Click **“New Project”**.
+3. Choose **“Deploy from GitHub repo”**. Select the repository you just pushed (e.g. `cheapeats` or `polaris_app`). Authorize Railway to access GitHub if it asks.
+4. Railway will create a **service** from that repo. Click that service to open it.
+5. In the service, open the **Settings** (or **Variables**) section and set:
+   - **Build Command:** `npm install && npm run build`
+   - **Start Command:** `npm start`
+   - **Root Directory:** leave blank (so it uses the repo root).
+6. In **Settings**, find **Networking** / **Public Networking** and click **“Generate Domain”** (or similar). Railway will assign a public URL like **https://your-app-name.up.railway.app**.
+7. Add a **payment method** (Railway is pay-as-you-go; your school can pay — typically **about $5–10/month** for this app). The app needs this to run (no free tier required).
+8. Wait for the **deploy** to finish (watch the **Deployments** tab). When it says the deploy succeeded, open the URL Railway gave you.
 
-   | Setting        | Value |
-   |----------------|--------|
-   | **Name**       | Anything you like (e.g. `cheapeats`) |
-   | **Region**     | Pick one close to you |
-   | **Branch**     | `main` |
-   | **Runtime**    | **Node** |
-   | **Build Command** | `npm install && npm run build` |
-   | **Start Command** | `npm start` |
-   | **Instance Type**  | **Free** (if you want the free tier) |
-
-5. Click **“Create Web Service”**.
-
-Render will install dependencies, run the build (which builds the frontend and backend), then start the app. Wait a few minutes.
-
----
-
-## Step 3: Open your live app
-
-When the deploy finishes, Render shows a URL like:
-
-**https://cheapeats-xxxx.onrender.com**
-
-Click it. You should see your CheapEats app. The same URL serves both the website and the API (no extra setup).
+You should see your CheapEats app in the browser. That **one URL** serves both the website (frontend) and the API (backend) — everything on one platform.
 
 ---
 
 ## If something goes wrong
 
-- **Build fails:** On Render, open your service → **“Logs”**. Check the error. Often it’s “npm run build” failing: make sure you pushed the latest code and that both `frontend` and `backend` have a `package.json`.
-- **Blank page or errors:** Open the browser’s Developer Tools (F12) → **Console** tab and see if there are red errors. Check the **“Logs”** tab on Render for server errors.
-- **“Application failed to respond”:** On the free tier, the app can “sleep” after 15 minutes of no use. The first visit after that may take 30–60 seconds to wake up; that’s normal.
+- **Build fails:** In Railway, open your service → **Deployments** → click the latest deploy → check **Logs**. The error message usually says what failed (e.g. missing dependency). Make sure you pushed the latest code and that both `frontend` and `backend` folders and their `package.json` files are in the repo.
+- **Blank or broken page:** In your browser, press **F12** → open the **Console** tab and look for red errors. In Railway, check **Logs** for the running app to see any server errors.
 
 ---
 
 ## Summary
 
-- **Stack:** Node.js (Express) backend + React (Vite) frontend. One server serves both in production.
-- **Host:** Render (free tier, no credit card for Web Services).
-- **What you did:** Pushed code to GitHub → created a Render Web Service linked to that repo → Render runs `npm install && npm run build` then `npm start`. Your app is live at the URL Render gives you.
-- **Domain:** When you’re ready to use your GoDaddy domain, you’ll add it in Render’s dashboard and point the domain at Render (we can do that in a separate set of steps).
+| Question | Answer |
+|----------|--------|
+| **What stack?** | Node.js (Express) backend + React (Vite) frontend. In production, one Node server serves both. |
+| **Easiest way to production?** | Push code to GitHub → deploy that repo on Railway with the build/start commands above. |
+| **Standard, easy host?** | Railway — one platform, frontend and backend together, simple setup, pay-as-you-go (school can pay). |
+| **Domain (GoDaddy)?** | Not in this guide. When you’re ready, you’ll add the domain in Railway’s dashboard and point your GoDaddy domain to Railway; we can do that in a separate set of steps. |
 
-You’re done for “push to production.” Connect the domain whenever you’re ready.
+You’re done for “push to production.” Connect your GoDaddy domain whenever you want to.
