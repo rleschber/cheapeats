@@ -1,7 +1,20 @@
 import { Router } from "express";
 import { deals as dealsData, DEAL_OFFSETS } from "../data/deals.js";
+import { getLiveDeals, invalidateCache } from "../services/liveDealsService.js";
 
 const router = Router();
+
+const today = () => new Date().toISOString().slice(0, 10);
+
+/** Get base deal list: live (cached) if available and non-empty, else static filtered to unexpired only. */
+async function getBaseDeals() {
+  const { deals: liveDeals, fetchedAt, source } = await getLiveDeals();
+  if (liveDeals != null && liveDeals.length > 0) {
+    return { list: liveDeals, fetchedAt, source };
+  }
+  const filtered = (dealsData || []).filter((d) => !d.validUntil || d.validUntil >= today());
+  return { list: filtered, fetchedAt: null, source: "static" };
+}
 
 /**
  * Haversine distance in miles between two lat/lng points.
@@ -175,18 +188,17 @@ function getDealType(d) {
 
 /**
  * GET /api/deals
- * Requires lat, lng (user location). Deals are placed around the user's city — only deals within radius are returned.
+ * Requires lat, lng (user location). Deals come from live feed (when DEALS_FEED_URL is set) or static catalog; expired deals are never shown.
  */
-router.get("/", (req, res) => {
-  let list = [...dealsData];
+router.get("/", async (req, res) => {
+  const { list: baseList, fetchedAt, source } = await getBaseDeals();
+  let list = [...baseList];
+
   const { sort, radius, lat, lng } = req.query;
   const cuisineParam = req.query.cuisine;
   const dealTypeParam = req.query.dealType;
   const cuisines = [].concat(cuisineParam || []).filter(Boolean).map((c) => String(c).trim().toLowerCase());
   const dealTypes = [].concat(dealTypeParam || []).filter(Boolean).map((t) => String(t).trim());
-
-  const today = new Date().toISOString().slice(0, 10);
-  list = list.filter((d) => !d.validUntil || d.validUntil >= today);
 
   const userLat = lat != null && lat !== "" ? Number(lat) : null;
   const userLng = lng != null && lng !== "" ? Number(lng) : null;
@@ -202,7 +214,7 @@ router.get("/", (req, res) => {
     userLat >= -90 && userLat <= 90 && userLng >= -180 && userLng <= 180;
 
   if (!hasUserLocation) {
-    res.json({ deals: [], message: "Share your location to see deals in your area." });
+    res.json({ deals: [], message: "Share your location to see deals in your area.", fetchedAt: fetchedAt ?? undefined, source: source ?? undefined });
     return;
   }
 
@@ -250,17 +262,34 @@ router.get("/", (req, res) => {
     );
   }
 
-  res.json({ deals: list });
+  res.json({ deals: list, fetchedAt: fetchedAt ?? undefined, source: source ?? undefined });
 });
 
-router.get("/cuisines", (req, res) => {
-  const set = new Set(dealsData.map((d) => d.cuisine).filter(Boolean));
+router.get("/cuisines", async (req, res) => {
+  const { list } = await getBaseDeals();
+  const set = new Set((list || []).map((d) => d.cuisine).filter(Boolean));
   const cuisines = Array.from(set).sort();
   res.json({ cuisines });
 });
 
 router.get("/deal-types", (req, res) => {
   res.json({ dealTypes: DEAL_TYPES });
+});
+
+/**
+ * GET /api/deals/feed
+ * Returns unexpired deals as JSON (our schema). Use as DEALS_FEED_URL when no external API
+ * (e.g. http://localhost:3001/api/deals/feed) so the app still uses the live pipeline and never shows expired.
+ */
+router.get("/feed", (req, res) => {
+  const filtered = (dealsData || []).filter((d) => !d.validUntil || d.validUntil >= today());
+  res.json(filtered);
+});
+
+/** Force refresh of live deals cache on next request (e.g. when customer taps Refresh). */
+router.post("/refresh", (req, res) => {
+  invalidateCache();
+  res.json({ ok: true, message: "Deals cache cleared; next request will fetch live." });
 });
 
 export default router;

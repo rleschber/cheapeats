@@ -29,6 +29,12 @@ export async function getDealTypes() {
   return handleRes(res);
 }
 
+/** Clear server cache so next getDeals() fetches fresh live data. */
+export async function refreshDeals() {
+  const res = await fetch(`${API_BASE}/deals/refresh`, { method: "POST" });
+  return handleRes(res);
+}
+
 /**
  * Fetches logo from Brandfetch (via backend). Returns { logoUrl, format }.
  * Prefer SVG; format is 'svg' | 'png' | null.

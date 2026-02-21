@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { getDeals, getCuisines, getDealTypes } from "./api";
+import { getDeals, getCuisines, getDealTypes, refreshDeals } from "./api";
 import DealCard from "./DealCard";
 import CuisineFilter from "./CuisineFilter";
 import DealTypeFilter from "./DealTypeFilter";
@@ -37,12 +37,17 @@ export default function App() {
   };
 
   const [dealsMessage, setDealsMessage] = useState(null);
+  const [dealsUpdatedAt, setDealsUpdatedAt] = useState(null);
+  const [dealsSource, setDealsSource] = useState(null);
 
-  const loadDeals = useCallback(async () => {
+  const loadDeals = useCallback(async (forceRefresh = false) => {
     setLoading(true);
     setError(null);
     setDealsMessage(null);
     try {
+      if (forceRefresh) {
+        await refreshDeals();
+      }
       const data = await getDeals({
         cuisines: selectedCuisines,
         dealTypes: selectedDealTypes,
@@ -52,6 +57,8 @@ export default function App() {
       });
       setDeals(data.deals || []);
       setDealsMessage(data.message || null);
+      setDealsUpdatedAt(data.fetchedAt ?? null);
+      setDealsSource(data.source ?? null);
     } catch (e) {
       setError("Could not load deals. Is the server running?");
       setDeals([]);
@@ -162,6 +169,22 @@ export default function App() {
         )}
         {!loading && !error && deals.length > 0 && (
           <section className="deals-section">
+            <div className="deals-section__meta">
+              {(dealsSource === "live" || dealsSource === "cache") && dealsUpdatedAt && (
+                <span className="deals-updated" title="Live deals">
+                  Live · Updated {new Date(dealsUpdatedAt).toLocaleTimeString()}
+                </span>
+              )}
+              <button
+                type="button"
+                className="deals-refresh-btn"
+                onClick={() => loadDeals(true)}
+                disabled={loading}
+                title="Fetch latest deals"
+              >
+                Refresh
+              </button>
+            </div>
             <h2 className="section-title">
               {selectedCuisines.length || selectedDealTypes.length
                 ? [

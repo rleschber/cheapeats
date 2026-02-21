@@ -61,6 +61,45 @@ You should see your CheapEats app in the browser. That **one URL** serves both t
 
 ---
 
+## Step 3: After deploy is "online" — next steps
+
+### 1. Test the app
+
+1. In Railway, find your **public URL** (e.g. **https://your-app-name.up.railway.app**). It’s in your service under **Settings** → **Networking** / **Domains**, or on the service overview.
+2. **Click the URL** (or copy it into your browser). The CheapEats home page should load.
+3. Check that **deals show up** and the **Cuisine** (or other) filter works. If that works, your app is live and working.
+
+You can share this link with anyone; no other step is required for the app to be public.
+
+---
+
+### 2. (Optional) Connect your GoDaddy domain
+
+When you want the app to be at **your domain** (e.g. `www.cheapeats.com`) instead of the Railway URL:
+
+**A. In Railway**
+
+1. Open your project → click your **service**.
+2. Go to **Settings** → **Networking** (or **Domains**).
+3. Click **Custom Domain** (or **Add domain**).
+4. Enter your domain, e.g. `www.yourdomain.com` or `yourdomain.com` (Railway will show which they support).
+5. Railway will show you a **CNAME target** (e.g. `your-app.up.railway.app`) or **A record** instructions. **Leave this tab open** — you’ll use it in GoDaddy.
+
+**B. In GoDaddy**
+
+1. Log in at [https://godaddy.com](https://godaddy.com) → **My Products** → click your **domain**.
+2. Open **DNS** or **Manage DNS** (for that domain).
+3. Add or edit a record as Railway says:
+   - For **www** (e.g. `www.yourdomain.com`): Add a **CNAME** record: **Name** = `www`, **Value** = the Railway CNAME target (e.g. `your-app.up.railway.app`). Save.
+   - For **root** (e.g. `yourdomain.com` with no www): Railway may give you an **A record** with an IP, or tell you to use a CNAME. Follow what Railway shows.
+4. Save. DNS can take **5–60 minutes** to update. After that, opening `https://www.yourdomain.com` (or your domain) should show your app.
+
+**C. HTTPS**
+
+Railway usually provides HTTPS for your custom domain once the domain points to them. If Railway asks you to add a CNAME for verification, add it in GoDaddy the same way as above.
+
+---
+
 ## If something goes wrong
 
 - **Build fails:** In Railway, open your service → **Deployments** → click the latest deploy → check **Logs**. The error message usually says what failed (e.g. missing dependency). Make sure you pushed the latest code and that both `frontend` and `backend` folders and their `package.json` files are in the repo.
