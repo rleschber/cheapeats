@@ -12,12 +12,6 @@ export default function DealCard({ deal, userLocation }) {
 
   const imgSrc = imgFailed || !deal.foodImage ? FALLBACK_IMAGE : deal.foodImage;
 
-  // #region agent log
-  if (typeof deal.id !== 'undefined' && [1,2,3,4,5].includes(Number(deal.id))) {
-    fetch('http://127.0.0.1:7242/ingest/3816f58b-7009-422c-a002-5a64fb97f2e2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DealCard.jsx',message:'DealCard render',data:{id:deal.id,title:(deal.title||'').slice(0,30),foodImagePresent:!!deal.foodImage,imgFailed,imgSrcStart:(imgSrc||'').slice(0,55)},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
-  }
-  // #endregion
-
   return (
     <>
       <article
@@ -38,10 +32,7 @@ export default function DealCard({ deal, userLocation }) {
             src={imgSrc}
             alt=""
             className="deal-card__image"
-            onError={() => {
-              fetch('http://127.0.0.1:7242/ingest/3816f58b-7009-422c-a002-5a64fb97f2e2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DealCard.jsx:onError',message:'img onError',data:{id:deal.id,title:(deal.title||'').slice(0,30)},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
-              setImgFailed(true);
-            }}
+            onError={() => setImgFailed(true)}
           />
         </div>
         <div className="deal-card__body">
