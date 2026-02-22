@@ -126,15 +126,22 @@ const FOOD_IMAGES = {
   soup: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&q=80",
 };
 
+const DEFAULT_FOOD_IMAGE = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80";
+
 const RESTAURANT_FOOD = {
+  "McDonald's": "burger", "Wendy's": "burger", "Burger King": "burger",
+  "Taco Bell": "taco", "Chipotle": "burrito",
   "IHOP": "breakfast", "Denny's": "breakfast",
   "Buffalo Wild Wings": "wings", "Wingstop": "wings",
   "Dunkin'": "donut", "Starbucks": "coffee",
   "Raising Cane's": "chicken", "Zaxby's": "chicken",
   "KFC": "chicken", "Popeyes": "chicken", "Chick-fil-A": "chicken",
-  "Panda Express": "chinese",
-  "Olive Garden": "pasta",
-  "Dairy Queen": "icecream",
+  "Panda Express": "chinese", "Olive Garden": "pasta", "Dairy Queen": "icecream",
+  "Subway": "sub", "Domino's": "pizza", "Pizza Hut": "pizza",
+  "Little Caesars": "pizza", "Papa John's": "pizza",
+  "Sonic": "burger", "Arby's": "sub", "Jack in the Box": "burger",
+  "Whataburger": "burger", "Five Guys": "burger", "In-N-Out": "burger",
+  "Panera Bread": "sub", "Firehouse Subs": "sub", "Moe's Southwest Grill": "burrito",
 };
 
 const CUISINE_FOOD = {
@@ -142,35 +149,60 @@ const CUISINE_FOOD = {
   "Pizza": "pizza", "Sandwiches": "sub", "Italian": "pasta", "Chinese": "chinese",
 };
 
-function pickFoodImage(d) {
-  const text = `${d.title || ""} ${d.description || ""}`.toLowerCase();
-  if (/taco|tacos/.test(text)) return FOOD_IMAGES.taco;
-  if (/burrito/.test(text)) return FOOD_IMAGES.burrito;
+function pickFoodImage(d, logId) {
+  const title = (d.title || d.dealTitle || "").toString();
+  const desc = (d.description || "").toString();
+  const text = (title + " " + desc).toLowerCase();
+  const rest = (d.restaurant || d.restaurantName || "").toString();
+
+  // #region agent log
+  if (logId != null && logId < 5) {
+    fetch('http://127.0.0.1:7242/ingest/3816f58b-7009-422c-a002-5a64fb97f2e2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'deals.js:pickFoodImage',message:'pickFoodImage input',data:{logId,title:title.slice(0,40),rest,cuisine:(d.cuisine||'').toString(),textLen:text.length},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+  }
+  // #endregion
+
+  if (/\btaco[s]?\b|taco bell/.test(text)) return FOOD_IMAGES.taco;
+  if (/\bburrito/.test(text)) return FOOD_IMAGES.burrito;
   if (/nachos|queso/.test(text)) return FOOD_IMAGES.nachos;
-  if (/\bwing|wings|boneless/.test(text)) return FOOD_IMAGES.wings;
-  if (/burger|whopper|mcdouble|cheeseburger/.test(text)) return FOOD_IMAGES.burger;
-  if (/fries|fry|waffle fries|curly fries/.test(text)) return FOOD_IMAGES.fries;
-  if (/pizza|pepperoni|topping/.test(text)) return FOOD_IMAGES.pizza;
+  if (/\bwing[s]?\b|boneless/.test(text)) return FOOD_IMAGES.wings;
+  if (/\bfries?\b|waffle fries|curly fries/.test(text)) return FOOD_IMAGES.fries;
+  if (/\bburger\b|whopper|mcdouble|mcchicken|cheeseburger|dave's single|single\b|biggie|big mac/.test(text)) return FOOD_IMAGES.burger;
+  if (/pizza|pepperoni|topping|carryout|hot-n-ready/.test(text)) return FOOD_IMAGES.pizza;
   if (/chicken sandwich/.test(text)) return FOOD_IMAGES.chicken;
-  if (/\bsub\b|footlong|sandwich/.test(text)) return FOOD_IMAGES.sub;
+  if (/\bsub\b|footlong|sandwich|classics\b/.test(text)) return FOOD_IMAGES.sub;
   if (/tender|nugget/.test(text)) return FOOD_IMAGES.nuggets;
   if (/frosty|milkshake|ice cream|blizzard/.test(text)) return FOOD_IMAGES.icecream;
-  if (/cold brew|coffee|latte|espresso/.test(text)) return FOOD_IMAGES.coffee;
+  if (/cold brew|coffee|latte|espresso|handcrafted drink/.test(text)) return FOOD_IMAGES.coffee;
   if (/donut|doughnut/.test(text)) return FOOD_IMAGES.donut;
-  if (/pancake|waffle|breakfast/.test(text)) return FOOD_IMAGES.breakfast;
+  if (/pancake|waffle\b|breakfast/.test(text)) return FOOD_IMAGES.breakfast;
   if (/corn dog/.test(text)) return FOOD_IMAGES.corndog;
   if (/gyro/.test(text)) return FOOD_IMAGES.gyro;
-  if (/pasta|entrée|entree/.test(text)) return FOOD_IMAGES.pasta;
-  if (/bowl|guac/.test(text)) return FOOD_IMAGES.bowl;
+  if (/pasta|entrée|entree|never ending/.test(text)) return FOOD_IMAGES.pasta;
+  if (/bowl|guac|guacamole/.test(text)) return FOOD_IMAGES.bowl;
   if (/soup|salad/.test(text)) return FOOD_IMAGES.soup;
-  if (/drink|soda|slush/.test(text)) return FOOD_IMAGES.drinks;
-  if (/happy hour|apps/.test(text)) return FOOD_IMAGES.apps;
-  if (/mcchicken|mcmuffin/.test(text)) return FOOD_IMAGES.burger;
-  const rKey = RESTAURANT_FOOD[d.restaurant];
-  if (rKey) return FOOD_IMAGES[rKey];
-  const cKey = CUISINE_FOOD[d.cuisine];
-  if (cKey) return FOOD_IMAGES[cKey];
-  return FOOD_IMAGES.burger;
+  if (/\bdrink[s]?\b|soda|slush/.test(text)) return FOOD_IMAGES.drinks;
+  if (/happy hour|apps\b/.test(text)) return FOOD_IMAGES.apps;
+  if (/meal deal|mcmuffin/.test(text)) return FOOD_IMAGES.burger;
+  if (/cravings box|entrées?/.test(text)) return FOOD_IMAGES.taco;
+
+  const rKey = RESTAURANT_FOOD[rest];
+  if (rKey && FOOD_IMAGES[rKey]) {
+    // #region agent log
+    if (logId != null && logId < 5) fetch('http://127.0.0.1:7242/ingest/3816f58b-7009-422c-a002-5a64fb97f2e2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'deals.js:pickFoodImage',message:'pickFoodImage result',data:{logId,result:'restaurant',rKey,url:FOOD_IMAGES[rKey].slice(0,60)},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+    // #endregion
+    return FOOD_IMAGES[rKey];
+  }
+  const cKey = CUISINE_FOOD[(d.cuisine || "").toString().trim()];
+  if (cKey && FOOD_IMAGES[cKey]) {
+    // #region agent log
+    if (logId != null && logId < 5) fetch('http://127.0.0.1:7242/ingest/3816f58b-7009-422c-a002-5a64fb97f2e2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'deals.js:pickFoodImage',message:'pickFoodImage result',data:{logId,result:'cuisine',cKey},timestamp:Date.now(),hypothesisId:'H5'})}).catch(()=>{});
+    // #endregion
+    return FOOD_IMAGES[cKey];
+  }
+  // #region agent log
+  if (logId != null && logId < 5) fetch('http://127.0.0.1:7242/ingest/3816f58b-7009-422c-a002-5a64fb97f2e2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'deals.js:pickFoodImage',message:'pickFoodImage result',data:{logId,result:'default'},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+  // #endregion
+  return DEFAULT_FOOD_IMAGE;
 }
 
 function getDealType(d) {
@@ -231,14 +263,19 @@ router.get("/", async (req, res) => {
       distanceMiles(userLat, userLng, latitude, longitude) * 10
     ) / 10;
     const type = getDealType(d);
-    return {
+    const foodImage = pickFoodImage(d, i);
+    const out = {
       ...d,
       latitude,
       longitude,
       distanceMiles: distMi,
       dealType: type,
-      foodImage: pickFoodImage(d),
+      foodImage,
     };
+    // #region agent log
+    if (i < 4) fetch('http://127.0.0.1:7242/ingest/3816f58b-7009-422c-a002-5a64fb97f2e2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'deals.js:GET/',message:'deal foodImage set',data:{i,id:out.id,title:(out.title||'').slice(0,35),restaurant:out.restaurant,foodImagePresent:!!out.foodImage,foodImageStart:(out.foodImage||'').slice(0,50),source},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+    // #endregion
+    return out;
   });
 
   list = list.filter((d) => d.distanceMiles <= radiusMiles);
