@@ -58,7 +58,7 @@ Set **`DEALS_FEED_URL`** to any URL that returns JSON (your API, a third-party, 
 - **Built-in (no external API):** `DEALS_FEED_URL=http://localhost:3001/api/deals/feed` – serves unexpired deals from `backend/data/deals.js` through the live pipeline.
 - **Your API:** `DEALS_FEED_URL=https://your-api.com/deals` – your server returns a JSON array (or `{ "deals": [...] }`) with `title`/`headline`, `description`, `restaurant`/`restaurant_name`, `validUntil`/`date_end`, etc.
 
-The backend tries the feed first, then OpenMenu if the feed is missing or empty. **Static fallback:** if both are unset or fail, the app uses **`backend/data/deals.js`** and still filters out expired deals.
+The backend tries the feed first, then OpenMenu, then the built-in **scraper** (if `SCRAPER_URLS` is set). **Static fallback:** if all are unset or fail, the app uses **`backend/data/deals.js`** and still filters out expired deals.
 
 The UI shows **“Live · Updated …”** and a **Refresh** button when deals come from the feed or OpenMenu, and **"Catalog deals"** when using the static fallback. A **Refresh** button is always available.
 
@@ -68,12 +68,15 @@ The UI shows **“Live · Updated …”** and a **Refresh** button when deals c
 - To try the live pipeline with the same catalog: set `DEALS_FEED_URL=http://localhost:3001/api/deals/feed` in `backend/.env` and restart the backend — you'll see "Live · Updated" and cached refreshes.
 - Test filters (cuisine, deal type, radius), the Refresh button, and mobile layout so everything is ready when your API key arrives.
 
-### Getting live data from individual restaurant sites (scraping)
+### Built-in web scraper
 
-The app does **not** scrape restaurant websites or menus itself. Many sites forbid scraping in their terms of service, and scrapers break when pages change. To use data from individual sites you have two options:
+You can set **`SCRAPER_URLS`** (comma-separated URLs) in `backend/.env`. Many sites forbid scraping in their terms of service, and scrapers break when pages change. To use data from individual sites you have two options:
 
+- (Scraper) The app fetches URLs, finds deal-like text, and shows matches. **Only use sites you are allowed to scrape.** To avoid scraping, use OpenMenu or DEALS_FEED_URL.
 - **Run your own scraper/aggregator** (e.g. a small service that hits specific sites you’re allowed to use, or a licensed provider), then expose a JSON feed and set **`DEALS_FEED_URL`** to that URL. CheapEats will treat it as the live source.
 - **Use a provider** such as OpenMenu (built-in above), or another deal/coupon API that aggregates restaurant offers legally; then either set their feed as `DEALS_FEED_URL` or use OpenMenu with an API key as above.
+
+Set **`SCRAPER_URLS`** (comma-separated URLs) to enable the built-in scraper: the app will fetch those pages, look for deal-like text, and show matches as deals (runs on start and every hour; **Refresh** triggers a run). Only use sites you are allowed to scrape; many prohibit it in their ToS.
 
 ## Optional: run both with one command
 

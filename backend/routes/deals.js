@@ -1,6 +1,11 @@
 import { Router } from "express";
 import { deals as dealsData, DEAL_OFFSETS } from "../data/deals.js";
 import { getLiveDeals, invalidateCache } from "../services/liveDealsService.js";
+import { runScraper } from "../services/dealScraper.js";
+import {
+  getWebsiteImagesForDomains,
+  clearWebsiteImageCache,
+} from "../services/websiteImageService.js";
 
 const router = Router();
 
@@ -229,6 +234,16 @@ router.get("/", async (req, res) => {
     return;
   }
 
+  // Website-first images: fetch first image from each restaurant's homepage (cached)
+  const uniqueDomains = [
+    ...new Set(
+      list
+        .map((d) => LOGO_DOMAINS[d.restaurant || d.restaurantName])
+        .filter(Boolean)
+    ),
+  ];
+  const websiteImageMap = await getWebsiteImagesForDomains(uniqueDomains);
+
   const seenRestaurants = new Set();
   list = list.map((d, i) => {
     const isFirstOfBrand = !seenRestaurants.has(d.restaurant);
@@ -242,13 +257,15 @@ router.get("/", async (req, res) => {
       distanceMiles(userLat, userLng, latitude, longitude) * 10
     ) / 10;
     const type = getDealType(d);
+    const domain = LOGO_DOMAINS[d.restaurant || d.restaurantName];
+    const websiteImage = domain ? websiteImageMap.get(domain) : null;
     return {
       ...d,
       latitude,
       longitude,
       distanceMiles: distMi,
       dealType: type,
-      foodImage: pickFoodImage(d),
+      foodImage: websiteImage ?? pickFoodImage(d),
     };
   });
 
@@ -297,9 +314,13 @@ router.get("/feed", (req, res) => {
   res.json(filtered);
 });
 
-/** Force refresh of live deals cache on next request (e.g. when customer taps Refresh). */
-router.post("/refresh", (req, res) => {
+/** Force refresh of live deals cache on next request. If scraper is configured, run it first. */
+router.post("/refresh", async (req, res) => {
+  if (process.env.SCRAPER_URLS) {
+    await runScraper().catch(() => {});
+  }
   invalidateCache();
+  clearWebsiteImageCache();
   res.json({ ok: true, message: "Deals cache cleared; next request will fetch live." });
 });
 

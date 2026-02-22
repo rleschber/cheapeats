@@ -119,7 +119,7 @@ async function fetchFromOpenMenu() {
 }
 
 /**
- * Get deals: from cache if fresh, otherwise from feed URL then OpenMenu. Never returns expired deals.
+ * Get deals: from cache if fresh, otherwise from feed URL → OpenMenu → scraper. Never returns expired deals.
  */
 export async function getLiveDeals() {
   const now = Date.now();
@@ -132,6 +132,11 @@ export async function getLiveDeals() {
   let deals = await fetchFromFeed();
   if (deals === null || deals.length === 0) {
     deals = await fetchFromOpenMenu();
+  }
+  if ((deals === null || deals.length === 0)) {
+    const { getScrapedDeals } = await import("./dealScraper.js");
+    const scraped = getScrapedDeals();
+    if (scraped && scraped.length > 0) deals = scraped;
   }
   if (deals !== null && deals.length > 0) {
     cache = { deals, fetchedAt: now };
