@@ -175,6 +175,11 @@ export default function App() {
                   Live · Updated {new Date(dealsUpdatedAt).toLocaleTimeString()}
                 </span>
               )}
+              {dealsSource === "static" && (
+                <span className="deals-updated" title="Deals from catalog">
+                  Catalog deals
+                </span>
+              )}
               <button
                 type="button"
                 className="deals-refresh-btn"

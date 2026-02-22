@@ -31,4 +31,9 @@ if (fs.existsSync(frontendDist)) {
 
 app.listen(PORT, () => {
   console.log(`CheapEats API running at http://localhost:${PORT}`);
+  if (process.env.OPENMENU_API_KEY) {
+    const loc = process.env.OPENMENU_CITY && process.env.OPENMENU_COUNTRY ? " (location: " + [process.env.OPENMENU_CITY, process.env.OPENMENU_COUNTRY].join(", ") + ")" : " (sample deals)";
+    console.log("Live deals: OpenMenu API enabled" + loc);
+  }
+  if (process.env.DEALS_FEED_URL) console.log("Live deals: DEALS_FEED_URL set");
 });

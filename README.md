@@ -60,7 +60,13 @@ Set **`DEALS_FEED_URL`** to any URL that returns JSON (your API, a third-party, 
 
 The backend tries the feed first, then OpenMenu if the feed is missing or empty. **Static fallback:** if both are unset or fail, the app uses **`backend/data/deals.js`** and still filters out expired deals.
 
-The UI shows **“Live · Updated …”** and a **Refresh** button when deals come from the live source.
+The UI shows **“Live · Updated …”** and a **Refresh** button when deals come from the feed or OpenMenu, and **"Catalog deals"** when using the static fallback. A **Refresh** button is always available.
+
+### While you wait for OpenMenu
+
+- Use the app today: without any keys, it shows **catalog deals** (120+ deals, expired ones hidden).
+- To try the live pipeline with the same catalog: set `DEALS_FEED_URL=http://localhost:3001/api/deals/feed` in `backend/.env` and restart the backend — you'll see "Live · Updated" and cached refreshes.
+- Test filters (cuisine, deal type, radius), the Refresh button, and mobile layout so everything is ready when your API key arrives.
 
 ### Getting live data from individual restaurant sites (scraping)
 
