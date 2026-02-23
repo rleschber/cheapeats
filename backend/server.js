@@ -37,8 +37,5 @@ app.listen(PORT, () => {
     console.log("Live deals: OpenMenu API enabled" + loc);
   }
   if (process.env.DEALS_FEED_URL) console.log("Live deals: DEALS_FEED_URL set");
-  if (process.env.SCRAPER_URLS) {
-    console.log("Live deals: Scraper enabled");
-    startScraperSchedule();
-  }
+  startScraperSchedule();
 });

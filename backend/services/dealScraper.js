@@ -1,12 +1,60 @@
 /**
  * Deal scraper: fetches configured URLs, looks for deal-like content in the HTML,
  * and exposes it for the live deals pipeline. Use only on sites you are allowed to scrape.
+ *
+ * URLs come from (1) env SCRAPER_URLS (comma-separated) or (2) BUILT_IN_SCRAPER_URLS below.
+ * Add or edit URLs directly here to scrape without using .env.
  */
 
 import * as cheerio from "cheerio";
 
 const SCRAPER_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
 const REQUEST_TIMEOUT_MS = 15000;
+
+/**
+ * URLs to scrape when SCRAPER_URLS is not set.
+ * These match the "Website" links in the app (Go to website button). Same list as frontend restaurantLinks.js.
+ * Only use sites you're allowed to scrape; many chains restrict scraping in their ToS.
+ */
+const BUILT_IN_SCRAPER_URLS = [
+  "https://www.mcdonalds.com/us/en-us.html",
+  "https://www.tacobell.com",
+  "https://www.chipotle.com",
+  "https://www.wendys.com",
+  "https://www.bk.com",
+  "https://www.chick-fil-a.com",
+  "https://www.pandaexpress.com",
+  "https://www.subway.com",
+  "https://www.dominos.com",
+  "https://www.papajohns.com",
+  "https://www.littlecaesars.com",
+  "https://www.pizzahut.com",
+  "https://www.olivegarden.com",
+  "https://www.buffalowildwings.com",
+  "https://www.dunkindonuts.com",
+  "https://www.starbucks.com",
+  "https://www.sonicdrivein.com",
+  "https://www.arbys.com",
+  "https://www.jackinthebox.com",
+  "https://www.whataburger.com",
+  "https://www.wingstop.com",
+  "https://www.raisingcanes.com",
+  "https://www.zaxbys.com",
+  "https://www.popeyes.com",
+  "https://www.kfc.com",
+  "https://www.panerabread.com",
+  "https://www.jimmyjohns.com",
+  "https://www.qdoba.com",
+  "https://www.ihop.com",
+  "https://www.dennys.com",
+  "https://www.applebees.com",
+  "https://www.chilis.com",
+  "https://www.texasroadhouse.com",
+  "https://www.dairyqueen.com",
+  "https://www.krispykreme.com",
+  "https://www.redlobster.com",
+  "https://www.pfchangs.com",
+];
 
 /** Deal-like phrases (case-insensitive) to detect in link/heading text. */
 const DEAL_PATTERNS = [
@@ -133,11 +181,11 @@ function extractDeals($, pageUrl) {
   return out.map((r, i) => normalizeScraped(r, i, hostName));
 }
 
-/** Get list of URLs to scrape from env (comma-separated). */
+/** Get list of URLs to scrape: from env SCRAPER_URLS, or BUILT_IN_SCRAPER_URLS if env is unset. */
 function getTargetUrls() {
-  const urls = process.env.SCRAPER_URLS?.trim();
-  if (!urls) return [];
-  return urls.split(",").map((u) => u.trim()).filter(Boolean);
+  const fromEnv = process.env.SCRAPER_URLS?.trim();
+  if (fromEnv) return fromEnv.split(",").map((u) => u.trim()).filter(Boolean);
+  return BUILT_IN_SCRAPER_URLS.filter((u) => typeof u === "string" && u.trim().length > 0);
 }
 
 let scrapedCache = { deals: [], fetchedAt: 0 };
