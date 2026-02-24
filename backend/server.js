@@ -37,5 +37,9 @@ app.listen(PORT, () => {
     console.log("Live deals: OpenMenu API enabled" + loc);
   }
   if (process.env.DEALS_FEED_URL) console.log("Live deals: DEALS_FEED_URL set");
-  startScraperSchedule();
+  try {
+    startScraperSchedule();
+  } catch (err) {
+    console.warn("Scraper schedule failed (server still running):", err.message);
+  }
 });

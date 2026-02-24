@@ -4,8 +4,8 @@
  * Results are cached in memory per domain.
  */
 
-const FETCH_TIMEOUT_MS = 5000;
-const USER_AGENT = "Mozilla/5.0 (compatible; CheapEats/1.0)";
+const FETCH_TIMEOUT_MS = 6000;
+const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
 const cache = new Map(); // domain -> string | null
 
@@ -72,8 +72,34 @@ function extractFirstImage(html, baseUrl) {
 }
 
 /**
+ * Fetch one URL and parse first image from HTML. Uses final response URL as base for relative paths.
+ */
+async function fetchAndExtractImage(pageUrl) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(pageUrl, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent": USER_AGENT,
+        Accept: "text/html,application/xhtml+xml",
+      },
+      redirect: "follow",
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) return null;
+    const html = await res.text();
+    const baseUrl = res.url || pageUrl;
+    return extractFirstImage(html, baseUrl);
+  } catch {
+    clearTimeout(timeoutId);
+    return null;
+  }
+}
+
+/**
  * Fetch homepage for domain and return first image URL, or null.
- * Results are cached per domain.
+ * Tries https://www.{domain} first, then https://{domain}. Results are cached per domain.
  * @param {string} domain - e.g. "mcdonalds.com"
  * @returns {Promise<string | null>}
  */
@@ -82,30 +108,8 @@ export async function getWebsiteImageUrl(domain) {
   const key = domain.toLowerCase().replace(/^www\./, "").trim();
   if (cache.has(key)) return cache.get(key);
 
-  const baseUrl = `https://${key}`;
-  let url = null;
-
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-
-    const res = await fetch(baseUrl, {
-      signal: controller.signal,
-      headers: { "User-Agent": USER_AGENT },
-      redirect: "follow",
-    });
-    clearTimeout(timeoutId);
-
-    if (!res.ok) {
-      cache.set(key, null);
-      return null;
-    }
-
-    const html = await res.text();
-    url = extractFirstImage(html, baseUrl);
-  } catch {
-    url = null;
-  }
+  let url = await fetchAndExtractImage(`https://www.${key}`);
+  if (!url) url = await fetchAndExtractImage(`https://${key}`);
 
   cache.set(key, url);
   return url;

@@ -4,13 +4,20 @@ import "./DealCard.css";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80";
 
+function getDealImage(deal) {
+  if (deal?.foodImage) return deal.foodImage;
+  if (deal?.image?.startsWith?.("http")) return deal.image;
+  if (deal?.imageFallback?.startsWith?.("http")) return deal.imageFallback;
+  return null;
+}
+
 export default function DealCard({ deal, userLocation }) {
   const restaurantName = deal.restaurant || "Deal";
   const dealTitle = deal.title || "";
   const [modalOpen, setModalOpen] = useState(false);
   const [imgFailed, setImgFailed] = useState(false);
 
-  const imgSrc = imgFailed || !deal.foodImage ? FALLBACK_IMAGE : deal.foodImage;
+  const imgSrc = imgFailed || !getDealImage(deal) ? FALLBACK_IMAGE : getDealImage(deal);
 
   return (
     <>

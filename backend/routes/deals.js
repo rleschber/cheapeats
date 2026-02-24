@@ -243,6 +243,11 @@ router.get("/", async (req, res) => {
     ),
   ];
   const websiteImageMap = await getWebsiteImagesForDomains(uniqueDomains);
+  if (uniqueDomains.length > 0) {
+    console.log(
+      `[deals] Website images: ${websiteImageMap.size}/${uniqueDomains.length} domains (rest fallback to deal/stock images)`
+    );
+  }
 
   const seenRestaurants = new Set();
   list = list.map((d, i) => {
@@ -259,13 +264,18 @@ router.get("/", async (req, res) => {
     const type = getDealType(d);
     const domain = LOGO_DOMAINS[d.restaurant || d.restaurantName];
     const websiteImage = domain ? websiteImageMap.get(domain) : null;
+    const foodImage =
+      websiteImage ??
+      (d.image && d.image.startsWith("http") ? d.image : null) ??
+      (d.imageFallback && d.imageFallback.startsWith("http") ? d.imageFallback : null) ??
+      pickFoodImage(d);
     return {
       ...d,
       latitude,
       longitude,
       distanceMiles: distMi,
       dealType: type,
-      foodImage: websiteImage ?? pickFoodImage(d),
+      foodImage,
     };
   });
 

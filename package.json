@@ -1,12 +1,16 @@
 {
   "name": "polaris-app",
   "private": true,
-  "description": "Run backend or frontend from project root",
+  "description": "CheapEats – run backend and frontend from project root",
   "scripts": {
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
     "backend": "cd backend && npm run dev",
     "frontend": "cd frontend && npm run dev",
-    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "dev": "npm run install:all && concurrently \"npm run backend\" \"npm run frontend\"",
     "build": "cd frontend && npm ci && npm run build && cd ../backend && npm ci",
     "start": "node backend/server.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
   }
 }

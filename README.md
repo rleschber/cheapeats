@@ -1,15 +1,103 @@
 # CheapEats
 
-A mobile-first app that consolidates restaurant and fast food discounts and deals. The home page shows the **best deals by savings**, and you can **filter by cuisine**.
+A mobile-first web app that aggregates restaurant and fast-food discounts and deals. Browse the best savings near you, filter by cuisine or deal type, and get directions or app links in one tap.
 
-## What’s included
+---
 
-- **Backend** (Node.js + Express): REST API for deals and cuisine list, with seed data.
-- **Frontend** (React + Vite): Responsive UI that works great on phones and desktops.
+## Features
 
-## Quick start
+- **Deal discovery** -- deals sorted by highest savings percentage
+- **Location-aware** -- uses your browser's geolocation to show nearby deals with distance
+- **Filters** -- cuisine type (Mexican, Pizza, Fast Food, etc.), deal type (BOGO, Happy Hour, Kids Eat Free, etc.), and adjustable search radius (0.1--25 miles)
+- **Deal cards** -- each card shows restaurant name, cuisine, savings, distance, expiration date, and a food image
+- **Deal actions modal** -- tap a card to open the restaurant website, download their app (App Store / Play Store), or get Google Maps directions
+- **Live deals pipeline** -- pull deals from an external JSON feed, the OpenMenu API, a built-in web scraper, or the static catalog (120+ deals)
+- **Auto-expiration** -- expired deals are automatically hidden
+- **Refresh** -- manual refresh button and 15-minute cache TTL for live sources
+- **Responsive design** -- looks great on phones, tablets, and desktops
 
-### 1. Backend
+---
+
+## Tech Stack
+
+| Layer    | Technology                          |
+| -------- | ----------------------------------- |
+| Frontend | React 18, Vite 5, plain CSS        |
+| Backend  | Node.js, Express, ES modules       |
+| Scraping | Cheerio (HTML parsing)              |
+| APIs     | OpenMenu, Geolocation, Google Maps  |
+| Database | None -- in-memory cache and static data files |
+
+---
+
+## Project Structure
+
+```
+polaris_app/
+├── backend/
+│   ├── data/
+│   │   ├── deals.js                 # 120+ deal catalog
+│   │   ├── restaurantLogos.js       # Logo URL mappings
+│   │   └── restaurantFoodImages.js  # Food image mappings
+│   ├── routes/
+│   │   └── deals.js                 # API endpoints
+│   ├── services/
+│   │   ├── liveDealsService.js      # Feed / OpenMenu / scraper pipeline
+│   │   ├── dealScraper.js           # Web scraper for deal pages
+│   │   └── websiteImageService.js   # Restaurant image extraction
+│   ├── server.js                    # Express entry point
+│   ├── .env.example                 # Environment variable template
+│   └── package.json
+│
+├── frontend/
+│   ├── public/images/               # Fallback food images
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── App.jsx              # Main app with location & filters
+│   │   │   ├── DealCard.jsx         # Individual deal card
+│   │   │   ├── DealActionModal.jsx  # Website / app / directions modal
+│   │   │   ├── CuisineFilter.jsx    # Cuisine filter pills
+│   │   │   ├── DealTypeFilter.jsx   # Deal type filter pills
+│   │   │   └── RangeFilter.jsx      # Radius slider
+│   │   ├── api.js                   # API client
+│   │   ├── restaurantLinks.js       # Restaurant URLs & app store links
+│   │   └── main.jsx                 # React entry point
+│   ├── vite.config.js               # Proxies /api to backend
+│   └── package.json
+│
+├── package.json                     # Root scripts (dev, build, start)
+└── README.md
+```
+
+---
+
+## Prerequisites
+
+- **Node.js** v18 or later
+- **npm** (comes with Node.js)
+
+---
+
+## Quick Start
+
+### One command (recommended)
+
+From the project root:
+
+```bash
+npm run dev
+```
+
+This installs all dependencies and starts both the backend and frontend concurrently.
+
+- **Backend** runs at `http://localhost:3001`
+- **Frontend** runs at `http://localhost:5173`
+
+Open **http://localhost:5173** in your browser.
+
+### Manual setup (two terminals)
+
+**Terminal 1 -- Backend:**
 
 ```bash
 cd backend
@@ -17,14 +105,7 @@ npm install
 npm run dev
 ```
 
-API runs at **http://localhost:3001**. Endpoints:
-
-- `GET /api/deals` – list deals (best savings first). Optional: `?cuisine=Mexican`, `?sort=newest`
-- `GET /api/deals/cuisines` – list of cuisine types for the filter
-
-### 2. Frontend
-
-In a second terminal:
+**Terminal 2 -- Frontend:**
 
 ```bash
 cd frontend
@@ -32,67 +113,125 @@ npm install
 npm run dev
 ```
 
-App runs at **http://localhost:5173**. Vite proxies `/api` to the backend, so the app works without CORS issues.
+Then open **http://localhost:5173**.
 
-### 3. Use the app
+---
 
-- Open **http://localhost:5173** in your browser (or on your phone on the same Wi‑Fi by using your PC’s IP and port 5173).
-- Home page shows deals sorted by best savings.
-- Use the **Cuisine** dropdown to filter (e.g. Mexican, Pizza, Fast Food).
+## Environment Variables
 
-## Data and live deals
-
-You can get live deals **without running your own API server** in two ways:
-
-### 1. OpenMenu (built-in, API key only)
-
-Set **`OPENMENU_API_KEY`** in `backend/.env` (get a key at [OpenMenu](https://www.openmenu.com/platform/account/api.php)). The app will call OpenMenu directly; no separate “external API” to host.
-
-- **Key only:** Uses OpenMenu’s sample deals (no credits). Good for trying it.
-- **Key + city/country:** Set `OPENMENU_CITY` and `OPENMENU_COUNTRY` (and optionally `OPENMENU_STATE` or `OPENMENU_POSTAL_CODE`) to load real deals for that area (restaurants from OpenMenu’s catalog).
-
-### 2. Your own feed URL
-
-Set **`DEALS_FEED_URL`** to any URL that returns JSON (your API, a third-party, or the built-in feed):
-
-- **Built-in (no external API):** `DEALS_FEED_URL=http://localhost:3001/api/deals/feed` – serves unexpired deals from `backend/data/deals.js` through the live pipeline.
-- **Your API:** `DEALS_FEED_URL=https://your-api.com/deals` – your server returns a JSON array (or `{ "deals": [...] }`) with `title`/`headline`, `description`, `restaurant`/`restaurant_name`, `validUntil`/`date_end`, etc.
-
-The backend tries the feed first, then OpenMenu, then the built-in **scraper** (if `SCRAPER_URLS` is set). **Static fallback:** if all are unset or fail, the app uses **`backend/data/deals.js`** and still filters out expired deals.
-
-The UI shows **“Live · Updated …”** and a **Refresh** button when deals come from the feed or OpenMenu, and **"Catalog deals"** when using the static fallback. A **Refresh** button is always available.
-
-### While you wait for OpenMenu
-
-- Use the app today: without any keys, it shows **catalog deals** (120+ deals, expired ones hidden).
-- To try the live pipeline with the same catalog: set `DEALS_FEED_URL=http://localhost:3001/api/deals/feed` in `backend/.env` and restart the backend — you'll see "Live · Updated" and cached refreshes.
-- Test filters (cuisine, deal type, radius), the Refresh button, and mobile layout so everything is ready when your API key arrives.
-
-### Built-in web scraper
-
-You can set **`SCRAPER_URLS`** (comma-separated URLs) in `backend/.env`. Many sites forbid scraping in their terms of service, and scrapers break when pages change. To use data from individual sites you have two options:
-
-- (Scraper) The app fetches URLs, finds deal-like text, and shows matches. **Only use sites you are allowed to scrape.** To avoid scraping, use OpenMenu or DEALS_FEED_URL.
-- **Run your own scraper/aggregator** (e.g. a small service that hits specific sites you’re allowed to use, or a licensed provider), then expose a JSON feed and set **`DEALS_FEED_URL`** to that URL. CheapEats will treat it as the live source.
-- **Use a provider** such as OpenMenu (built-in above), or another deal/coupon API that aggregates restaurant offers legally; then either set their feed as `DEALS_FEED_URL` or use OpenMenu with an API key as above.
-
-Set **`SCRAPER_URLS`** (comma-separated URLs) to enable the built-in scraper: the app will fetch those pages, look for deal-like text, and show matches as deals (runs on start and every hour; **Refresh** triggers a run). Only use sites you are allowed to scrape; many prohibit it in their ToS.
-
-## Optional: run both with one command
-
-From the project root:
+Copy the template and edit as needed:
 
 ```bash
-# Terminal 1
-cd backend && npm install && npm run dev
-
-# Terminal 2
-cd frontend && npm install && npm run dev
+cp backend/.env.example backend/.env
 ```
 
-Then open http://localhost:5173.
+| Variable              | Required | Default     | Description                                                        |
+| --------------------- | -------- | ----------- | ------------------------------------------------------------------ |
+| `PORT`                | No       | `3001`      | Backend server port                                                |
+| `DEALS_FEED_URL`      | No       | --          | URL returning a JSON array (or `{ "deals": [...] }`) of deals     |
+| `OPENMENU_API_KEY`    | No       | --          | OpenMenu API key ([get one here](https://www.openmenu.com/platform/account/api.php)) |
+| `OPENMENU_CITY`       | No       | --          | City for OpenMenu local deals                                     |
+| `OPENMENU_COUNTRY`    | No       | `US`        | Country code for OpenMenu                                          |
+| `OPENMENU_STATE`      | No       | --          | State for OpenMenu                                                 |
+| `OPENMENU_POSTAL_CODE`| No       | --          | Postal code for OpenMenu                                           |
+| `SCRAPER_URLS`        | No       | --          | Comma-separated URLs to scrape for deals                           |
+| `SCRAPER_INTERVAL_MS` | No       | `3600000`   | Scraper refresh interval (milliseconds, default 1 hour)            |
 
-## Tech stack
+**No environment variables are required.** Without any keys, the app uses the built-in catalog of 120+ deals.
 
-- **Backend:** Express, CORS, ES modules
-- **Frontend:** React 18, Vite, CSS (no UI framework; mobile-first layout)
+---
+
+## Data Sources
+
+The backend tries each source in order and uses the first one that succeeds:
+
+1. **JSON Feed** (`DEALS_FEED_URL`) -- any URL returning deal JSON
+2. **OpenMenu API** (`OPENMENU_API_KEY`) -- restaurant deal aggregator
+3. **Web Scraper** (`SCRAPER_URLS`) -- extracts deal-like text from web pages
+4. **Static Catalog** (fallback) -- `backend/data/deals.js` with 120+ pre-loaded deals
+
+You can try the live pipeline without external services by pointing the feed at itself:
+
+```
+DEALS_FEED_URL=http://localhost:3001/api/deals/feed
+```
+
+The UI shows **"Live - Updated ..."** when deals come from a live source, and **"Catalog deals"** when using the static fallback.
+
+---
+
+## API Endpoints
+
+| Method | Endpoint                  | Description                                      |
+| ------ | ------------------------- | ------------------------------------------------ |
+| GET    | `/api/deals`              | List deals (supports query params below)         |
+| GET    | `/api/deals/cuisines`     | Available cuisine types                          |
+| GET    | `/api/deals/deal-types`   | Available deal types                             |
+| GET    | `/api/deals/feed`         | Raw unexpired deals as JSON                      |
+| POST   | `/api/deals/refresh`      | Force-refresh the live deals cache               |
+| GET    | `/health`                 | Health check                                     |
+
+**Query parameters for `/api/deals`:**
+
+| Param      | Example              | Description                          |
+| ---------- | -------------------- | ------------------------------------ |
+| `cuisine`  | `?cuisine=Mexican`   | Filter by cuisine type               |
+| `dealType` | `?dealType=BOGO`     | Filter by deal type                  |
+| `sort`     | `?sort=newest`       | Sort order (`savings` or `newest`)   |
+| `radius`   | `?radius=5`          | Max distance in miles                |
+| `lat`      | `?lat=34.05`         | User latitude (for distance calc)    |
+| `lng`      | `?lng=-118.24`       | User longitude (for distance calc)   |
+
+---
+
+## Using the App
+
+1. **Allow location access** -- the app asks for your browser's geolocation so it can show distances and nearby deals.
+2. **Browse deals** -- the home page shows deals sorted by best savings percentage. Each card displays the restaurant, deal description, how much you save, and how far away it is.
+3. **Filter deals** -- use the cuisine pills (Mexican, Pizza, Fast Food, etc.), deal type pills (BOGO, Happy Hour, Kids Eat Free, etc.), or the radius slider to narrow results.
+4. **Tap a deal** -- opens a modal with three actions:
+   - **Go to website** -- opens the restaurant's site
+   - **Get the app** -- links to the App Store or Google Play (detected by your device)
+   - **Get directions** -- opens Google Maps with directions to the restaurant
+5. **Refresh** -- tap the refresh button to pull the latest deals from the live source.
+
+### Mobile access
+
+To use the app on your phone while running locally, open `http://<your-pc-ip>:5173` on any device connected to the same Wi-Fi network.
+
+---
+
+## Production Build
+
+Build the frontend and serve everything from the backend:
+
+```bash
+npm run build
+npm start
+```
+
+The backend serves the built frontend and the API on a single port (default `3001`).
+
+---
+
+## Available Scripts
+
+| Script            | Command              | Description                                      |
+| ----------------- | -------------------- | ------------------------------------------------ |
+| `npm run dev`     | Root                 | Install deps + start backend and frontend         |
+| `npm run build`   | Root                 | Build frontend for production + install backend   |
+| `npm start`       | Root                 | Start production server                           |
+| `npm run backend` | Root                 | Start backend dev server only                     |
+| `npm run frontend`| Root                 | Start frontend dev server only                    |
+| `npm run install:all` | Root             | Install all dependencies                          |
+
+---
+
+## Troubleshooting
+
+| Problem                             | Solution                                                                                         |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------ |
+| "Deals can't be loaded" / ECONNREFUSED | The backend isn't running. Start it with `cd backend && npm install && npm run dev`, or run `npm run dev` from the project root. |
+| Location not working                | Make sure you allow location access in your browser. Some browsers block it on `http://` -- try Chrome or Edge. |
+| No deals showing                    | All deals may have expired. Check `backend/data/deals.js` and update `validUntil` dates, or connect a live source. |
+| Port already in use                 | Change the port in `backend/.env` (`PORT=3002`) or kill the process using the port.              |
